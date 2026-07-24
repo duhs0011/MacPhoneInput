@@ -20,7 +20,7 @@ struct DeviceInfoView: View {
             Section(header: Text(L10n.DeviceInfo.device)) {
                 if entry.isHostConnected {
                     NavigationLink {
-                        DeviceNameEditView(id: entry.id)
+                        NameEditView(title: L10n.DeviceInfo.name, name: _deviceNameBinding)
                     } label: {
                         infoRow(L10n.DeviceInfo.name, Text(verbatim: entry.displayName))
                     }
@@ -111,32 +111,50 @@ struct DeviceInfoView: View {
             detail
         }
     }
+
+    private var _deviceNameBinding: Binding<String> {
+        Binding(
+            get: { names.name(for: entry.id) ?? "" },
+            set: { names.setName($0, for: entry.id) }
+        )
+    }
 }
 
-private struct DeviceNameEditView: View {
-    let id: UUID
-    @EnvironmentObject private var names: DeviceNameStore
+struct NameEditView: View {
+    let title: LocalizedStringKey
+    var footer: LocalizedStringKey?
+    var maxLength: Int?
+    @Binding var name: String
+    var onCommit: () -> Void = {}
+
     @FocusState private var focused: Bool
 
     var body: some View {
         Form {
-            TextField(L10n.DeviceInfo.name, text: binding)
-                .focused($focused)
+            Section(footer: _footer) {
+                TextField(title, text: _clamped)
+                    .focused($focused)
+            }
         }
         #if os(macOS)
         .formStyle(.grouped)
         #endif
-        .navigationTitle(L10n.DeviceInfo.name)
+        .navigationTitle(title)
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
             .onAppear { focused = true }
+            .onDisappear(perform: onCommit)
     }
 
-    private var binding: Binding<String> {
+    @ViewBuilder private var _footer: some View {
+        if let footer { Text(footer) }
+    }
+
+    private var _clamped: Binding<String> {
         Binding(
-            get: { names.name(for: id) ?? "" },
-            set: { names.setName($0, for: id) }
+            get: { name },
+            set: { new in name = maxLength.map { String(new.prefix($0)) } ?? new }
         )
     }
 }

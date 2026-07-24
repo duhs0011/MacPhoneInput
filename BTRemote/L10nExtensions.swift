@@ -117,8 +117,11 @@ extension L10n {
             "setup.from_device_step1"
         }
 
-        static var fromDeviceStep2: LocalizedStringKey {
-            "setup.from_device_step2"
+        static func fromDeviceStep2(_ name: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "setup.from_device_step2"),
+                name
+            )
         }
 
         static var fromDeviceStep3: LocalizedStringKey {
@@ -139,6 +142,14 @@ extension L10n {
 
         static var deviceNameLimitation: LocalizedStringKey {
             "setup.device_name_limitation"
+        }
+
+        static var advertisedName: LocalizedStringKey {
+            "setup.advertised_name"
+        }
+
+        static var advertisedNameHint: LocalizedStringKey {
+            "setup.advertised_name_hint"
         }
 
         static var bluetoothOffTitle: LocalizedStringKey {

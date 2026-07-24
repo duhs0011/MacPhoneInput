@@ -1651,6 +1651,28 @@
         }
       }
     },
+    "setup.advertised_name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advertised Name"
+          }
+        }
+      }
+    },
+    "setup.advertised_name_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name other devices see. For best compatibility, keep it to 8 characters or fewer."
+          }
+        }
+      }
+    },
     "setup.device_name_limitation": {
       "extractionState": "manual",
       "localizations": {
@@ -1756,7 +1778,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "On the target device, open Bluetooth settings and pair with \"BTRemote\" or this device's Bluetooth name."
+            "value": "On the target device, open Bluetooth settings and pair with \"%@\" or this device's Bluetooth name."
           }
         }
       }

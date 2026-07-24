@@ -20,7 +20,7 @@ final class HIDPeripheral: NSObject, ObservableObject {
 
     private var centralObjects: [UUID: CBCentral] = [:]
 
-    var advertiseLocalName: String = L10n.Bluetooth.advertisedName
+    var advertiseLocalName: String = UserDefaults.standard.string(forKey: AppSettings.advertisedNameKey) ?? L10n.Bluetooth.advertisedName
 
     private let log = Logger(subsystem: "io.github.jqssun.btremote", category: "HIDPeripheral")
     private var pManager: CBPeripheralManager?

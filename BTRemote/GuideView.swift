@@ -8,6 +8,8 @@ struct GuideView: View {
 
     let transport: Transport
 
+    @AppStorage(AppSettings.advertisedNameKey) private var advertisedName = L10n.Bluetooth.advertisedName
+
     var body: some View {
         Form {
             #if os(macOS)
@@ -24,7 +26,7 @@ struct GuideView: View {
                 }
                 Section(header: header(L10n.Setup.fromDevice, L10n.Setup.connectFromTargetDevice), footer: fromDeviceFooter) {
                     step("1.circle", L10n.Setup.fromDeviceStep1)
-                    step("2.circle", L10n.Setup.fromDeviceStep2)
+                    step("2.circle", Text(verbatim: L10n.Setup.fromDeviceStep2(advertisedName)))
                     step("3.circle", L10n.Setup.fromDeviceStep3)
                 }
             case .classic:
@@ -97,7 +99,11 @@ struct GuideView: View {
     }
 
     private func step(_ icon: String, _ text: LocalizedStringKey) -> some View {
-        Label { Text(text) } icon: { Image(systemName: icon) }
+        step(icon, Text(text))
+    }
+
+    private func step(_ icon: String, _ text: Text) -> some View {
+        Label { text } icon: { Image(systemName: icon) }
     }
 
     private func header(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> some View {
