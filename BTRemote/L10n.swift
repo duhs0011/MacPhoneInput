@@ -207,6 +207,10 @@ enum L10n {
             "sort.title"
         }
 
+        static var direction: LocalizedStringKey {
+            "sort.direction"
+        }
+
         static var ascending: LocalizedStringKey {
             "sort.ascending"
         }
@@ -274,12 +278,24 @@ extension L10n {
             "keyboard.clear"
         }
 
+        static var send: LocalizedStringKey {
+            "keyboard.send"
+        }
+
+        static var liveTyping: LocalizedStringKey {
+            "keyboard.live_typing"
+        }
+
         static var done: LocalizedStringKey {
             "keyboard.done"
         }
 
         static var esc: LocalizedStringKey {
             "keyboard.esc"
+        }
+
+        static var arrows: LocalizedStringKey {
+            "keyboard.arrows"
         }
 
         static var tab: LocalizedStringKey {

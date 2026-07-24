@@ -111,6 +111,8 @@ struct SetupView: View {
     #if os(macOS)
         private var transportModeSection: some View {
             Section {
+                Text(classicMode ? L10n.TransportMode.classicCompatibility : L10n.TransportMode.lowEnergyCompatibility)
+                    .font(.caption).foregroundColor(.secondary)
                 Picker(selection: $modeRaw) {
                     Text(L10n.TransportMode.lowEnergy).tag(TransportMode.lowEnergy.rawValue)
                     Text(L10n.TransportMode.classic).tag(TransportMode.classic.rawValue)
@@ -120,10 +122,6 @@ struct SetupView: View {
                 .pickerStyle(.segmented)
             } header: {
                 Text(L10n.TransportMode.section)
-            } footer: {
-                Text(classicMode ? L10n.TransportMode.classicCompatibility : L10n.TransportMode.lowEnergyCompatibility)
-                    + Text(verbatim: "\n\n")
-                    + Text(classicMode ? L10n.TransportMode.lowEnergyCompatibility : L10n.TransportMode.classicCompatibility)
             }
         }
     #endif

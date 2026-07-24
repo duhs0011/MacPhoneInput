@@ -10,16 +10,22 @@ struct GuideView: View {
 
     var body: some View {
         Form {
+            #if os(macOS)
+                Section {
+                    Text(about).font(.caption).foregroundColor(.secondary)
+                    Text(compatibility).font(.caption).foregroundColor(.secondary)
+                }
+            #endif
             switch transport {
             case .lowEnergy:
-                Section(header: Text(L10n.Setup.fromDevice), footer: fromDeviceFooter) {
+                Section(header: header(L10n.Setup.fromApp, L10n.Setup.connectFromThisApp), footer: fromAppFooter) {
+                    step("1.circle", L10n.Setup.fromAppStep1)
+                    step("2.circle", L10n.Setup.fromAppStep2)
+                }
+                Section(header: header(L10n.Setup.fromDevice, L10n.Setup.connectFromTargetDevice), footer: fromDeviceFooter) {
                     step("1.circle", L10n.Setup.fromDeviceStep1)
                     step("2.circle", L10n.Setup.fromDeviceStep2)
                     step("3.circle", L10n.Setup.fromDeviceStep3)
-                }
-                Section(header: Text(L10n.Setup.fromApp), footer: fromAppFooter) {
-                    step("1.circle", L10n.Setup.fromAppStep1)
-                    step("2.circle", L10n.Setup.fromAppStep2)
                 }
             case .classic:
                 Section(footer: footer) {
@@ -40,9 +46,6 @@ struct GuideView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 12) {
-            #if os(macOS)
-                transportInfo
-            #endif
             Text(troubleshooting)
             locationHint
         }
@@ -50,18 +53,13 @@ struct GuideView: View {
 
     private var fromDeviceFooter: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.Setup.iCloudPaired)
             Text(troubleshooting)
+            locationHint
         }
     }
 
     private var fromAppFooter: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            #if os(macOS)
-                transportInfo
-            #endif
-            locationHint
-        }
+        Text(L10n.Setup.iCloudPaired)
     }
 
     private var locationHint: some View {
@@ -89,13 +87,6 @@ struct GuideView: View {
             case .classic: L10n.TransportMode.classicCompatibility
             }
         }
-
-        private var transportInfo: some View {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(about)
-                Text(compatibility)
-            }
-        }
     #endif
 
     private var troubleshooting: LocalizedStringKey {
@@ -107,5 +98,12 @@ struct GuideView: View {
 
     private func step(_ icon: String, _ text: LocalizedStringKey) -> some View {
         Label { Text(text) } icon: { Image(systemName: icon) }
+    }
+
+    private func header(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+            Text(subtitle).font(.caption).foregroundColor(.secondary).textCase(nil)
+        }
     }
 }

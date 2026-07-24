@@ -1,7 +1,7 @@
 import CoreBluetooth
 import SwiftUI
 
-private enum SortField {
+private enum SortField: Hashable {
     case name, signal
 
     var label: LocalizedStringKey {
@@ -60,28 +60,18 @@ struct DeviceListView: View {
     private var sortMenu: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Menu {
-                sortButton(.name)
-                sortButton(.signal)
+                Picker(L10n.Sort.title, selection: $sortField) {
+                    Text(SortField.name.label).tag(SortField.name)
+                    Text(SortField.signal.label).tag(SortField.signal)
+                }
+                .pickerStyle(.inline)
+                Picker(L10n.Sort.direction, selection: $sortAscending) {
+                    Text(L10n.Sort.ascending).tag(true)
+                    Text(L10n.Sort.descending).tag(false)
+                }
+                .pickerStyle(.inline)
             } label: {
-                Label(L10n.Sort.title, systemImage: "ellipsis.circle")
-            }
-        }
-    }
-
-    private func sortButton(_ field: SortField) -> some View {
-        let selected = sortField == field
-        return Button {
-            if selected {
-                sortAscending.toggle()
-            } else {
-                sortField = field
-            }
-        } label: {
-            Text(field.label)
-            if selected {
-                // direction shows as the menu item subtitle on the selected row
-                Text(sortAscending ? L10n.Sort.ascending : L10n.Sort.descending)
-                Image(systemName: "checkmark")
+                Label(L10n.Sort.title, systemImage: "ellipsis")
             }
         }
     }

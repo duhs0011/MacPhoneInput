@@ -8,6 +8,7 @@ enum AppSettings {
     static let useServiceChangedKey = "BTRemote.useServiceChanged"
     static let deviceNamesKey = "BTRemote.deviceNames"
     static let hasSeenWelcomeKey = "BTRemote.hasSeenWelcome"
+    static let liveTypingKey = "BTRemote.liveTyping"
 
     static let repoURL = URL(string: "https://github.com/jqssun/darwin-bt-remote")!
     static let instructionsURL = URL(string: "https://github.com/jqssun/darwin-bt-remote/blob/main/README.md")!

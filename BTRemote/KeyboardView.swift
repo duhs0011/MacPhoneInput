@@ -13,6 +13,7 @@ struct KeyboardView: View {
     #endif
 
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
+    @AppStorage(AppSettings.liveTypingKey) private var liveTyping = true
     @State private var text = ""
     @State private var sent = ""
     @State private var resetting = false
@@ -95,14 +96,53 @@ struct KeyboardView: View {
             }
         }
         .padding()
+        .toolbar { modeToggle }
+        .onChange(of: liveTyping) { _ in clear() }
         #if os(iOS)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button(L10n.Keyboard.done) { focused = false }
-                }
+                ToolbarItemGroup(placement: .keyboard) { accessoryBar }
             }
         #endif
+    }
+
+    @ViewBuilder
+    private var accessoryBar: some View {
+        accessoryKey("escape", L10n.Keyboard.esc) { press(.escape) }
+        accessoryKey("arrow.right.to.line", L10n.Keyboard.tab) { press(.tab) }
+        Button {
+            Haptics.tap()
+            toggle(.leftCtrl)
+        } label: {
+            Image(systemName: "control")
+                .foregroundStyle(mods.contains(.leftCtrl) ? Color.accentColor : Color.primary)
+        }
+        .accessibilityLabel(L10n.Keyboard.ctrl)
+        ArrowPad { press($0) }
+        accessoryKey("delete.left", L10n.Keyboard.backspace) { press(.backspace) }
+        Spacer()
+        Button(L10n.Keyboard.done) { focused = false }
+    }
+
+    private func accessoryKey(_ symbol: String, _ label: LocalizedStringKey, _ tap: @escaping () -> Void) -> some View {
+        Button {
+            Haptics.tap()
+            tap()
+        } label: {
+            Image(systemName: symbol).foregroundStyle(Color.primary)
+        }
+        .accessibilityLabel(label)
+    }
+
+    @ToolbarContentBuilder
+    private var modeToggle: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Menu {
+                Toggle(L10n.Keyboard.liveTyping, isOn: $liveTyping)
+            } label: {
+                Image(systemName: "ellipsis")
+            }
+        }
     }
 
     private var inputField: some View {
@@ -116,7 +156,12 @@ struct KeyboardView: View {
                 .keyboardType(.asciiCapable)
             #endif
                 .onChange(of: text) { handleChange($0) }
-                .onSubmit { press(.return) }
+                .onSubmit { liveTyping ? press(.return) : send() }
+            if !liveTyping {
+                Button(L10n.Keyboard.send) { send() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(text.isEmpty)
+            }
             Button(L10n.Keyboard.clear) { clear() }
                 .buttonStyle(.bordered)
         }
@@ -235,6 +280,7 @@ struct KeyboardView: View {
             sent = new
             return
         }
+        guard liveTyping else { return }
         typist.send = hid.sendKeyboard
         let prefix = new.commonPrefix(with: sent).count
         var reports: [KeyboardReport] = []
@@ -246,6 +292,17 @@ struct KeyboardView: View {
         }
         typist.enqueue(reports)
         sent = new
+    }
+
+    private func send() {
+        guard !text.isEmpty else { return }
+        typist.send = hid.sendKeyboard
+        var reports: [KeyboardReport] = []
+        for character in text {
+            reports += HIDInput.keyReports(for: character, adding: mods)
+        }
+        typist.enqueue(reports)
+        clear()
     }
 
     private func clear() {
@@ -277,6 +334,78 @@ private struct KeyCap {
         self.weight = weight
         self.accessibility = accessibility
         self.action = action
+    }
+}
+
+private struct ArrowPad: View {
+    let onArrow: (Keycode) -> Void
+
+    @StateObject private var repeater = ArrowRepeater()
+
+    var body: some View {
+        ZStack {
+            glyph("↑", .upArrow, dx: 0, dy: -8)
+            glyph("↓", .downArrow, dx: 0, dy: 8)
+            glyph("←", .leftArrow, dx: -10, dy: 0)
+            glyph("→", .rightArrow, dx: 10, dy: 0)
+        }
+        .frame(width: 46, height: 34)
+        .contentShape(Rectangle())
+        .accessibilityLabel(L10n.Keyboard.arrows)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged {
+                    repeater.fire = onArrow
+                    if let key = _direction($0.translation) {
+                        repeater.start(key)
+                    } else {
+                        repeater.stop()
+                    }
+                }
+                .onEnded { _ in repeater.stop() }
+        )
+    }
+
+    private func glyph(_ char: String, _ key: Keycode, dx: CGFloat, dy: CGFloat) -> some View {
+        Text(char)
+            .font(.system(size: 15))
+            .foregroundStyle(Color.primary)
+            .opacity(repeater.active == nil || repeater.active == key ? 1 : 0.25)
+            .offset(x: dx, y: dy)
+    }
+
+    private func _direction(_ d: CGSize) -> Keycode? {
+        guard hypot(d.width, d.height) >= 20 else { return nil }
+        if abs(d.width) > abs(d.height) { return d.width > 0 ? .rightArrow : .leftArrow }
+        return d.height > 0 ? .downArrow : .upArrow
+    }
+}
+
+@MainActor
+private final class ArrowRepeater: ObservableObject {
+    var fire: ((Keycode) -> Void)?
+    @Published private(set) var active: Keycode?
+
+    private var task: Task<Void, Never>?
+
+    func start(_ key: Keycode) {
+        guard key != active else { return }
+        stop()
+        active = key
+        fire?(key)
+        task = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            while !Task.isCancelled {
+                self?.fire?(key)
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+        }
+    }
+
+    func stop() {
+        task?.cancel()
+        task = nil
+        active = nil
     }
 }
 

@@ -89,6 +89,14 @@ extension L10n {
             "setup.classic_troubleshooting"
         }
 
+        static var connectFromThisApp: LocalizedStringKey {
+            "setup.connect_from_this_app"
+        }
+
+        static var connectFromTargetDevice: LocalizedStringKey {
+            "setup.connect_from_target_device"
+        }
+
         static var fromApp: LocalizedStringKey {
             "setup.from_app"
         }
