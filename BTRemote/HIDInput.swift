@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import SwiftUI
 #if os(iOS)
     import UIKit
 #endif
@@ -91,6 +92,13 @@ extension HIDInput {
         }
     #endif
 
+    static var unavailable: HIDInput {
+        HIDInput(
+            sendMouse: { _ in }, sendKeyboard: { _ in }, sendConsumer: { _ in }, updateBattery: { _ in },
+            isActive: false, isConnected: false, activeError: nil, batteryLevel: 0
+        )
+    }
+
     @MainActor
     private static func _lowEnergy(_ lowEnergy: HIDPeripheral, _ central: HIDCentral) -> HIDInput {
         HIDInput(
@@ -103,6 +111,17 @@ extension HIDInput {
             activeError: lowEnergy.lastError ?? central.lastError,
             batteryLevel: lowEnergy.batteryLevel
         )
+    }
+}
+
+private struct HIDInputKey: EnvironmentKey {
+    static var defaultValue: HIDInput { .unavailable }
+}
+
+extension EnvironmentValues {
+    var hid: HIDInput {
+        get { self[HIDInputKey.self] }
+        set { self[HIDInputKey.self] = newValue }
     }
 }
 

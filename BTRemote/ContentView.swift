@@ -3,30 +3,19 @@ import SwiftUI
 struct ContentView: View {
     @State private var tab = Tab.setup
 
-    @EnvironmentObject private var lowEnergy: HIDPeripheral
-    @EnvironmentObject private var central: HIDCentral
+    @Environment(\.hid) private var hid
     @StateObject private var directInput = DirectInputController()
     @Environment(\.openURL) private var openURL
     @AppStorage(AppSettings.hasSeenWelcomeKey) private var hasSeenWelcome = false
     @State private var showWelcome = false
     @State private var showGuide = false
     #if os(macOS)
-        @EnvironmentObject private var classic: HIDClassicDevice
-        @Environment(\.macTransport) private var macTransport
         @State private var showAccessibilityPrompt = false
         @State private var showConnectPrompt = false
     #endif
 
     private enum Tab {
-        case setup, remote, keyboard, settings
-    }
-
-    private var hid: HIDInput {
-        #if os(macOS)
-            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: macTransport == .classic)
-        #else
-            return HIDInput.make(lowEnergy: lowEnergy, central: central)
-        #endif
+        case setup, remote, settings
     }
 
     var body: some View {
@@ -34,11 +23,8 @@ struct ContentView: View {
             SetupView()
                 .tabItem { Label(L10n.Tab.setup, systemImage: "gearshape") }
                 .tag(Tab.setup)
-            KeyboardView(goToSetup: { tab = .setup })
-                .tabItem { Label(L10n.Tab.keyboard, systemImage: "keyboard") }
-                .tag(Tab.keyboard)
-            RemoteView(goToSetup: { tab = .setup })
-                .tabItem { Label(L10n.Tab.remote, systemImage: "gamecontroller") }
+            RemoteTabView(goToSetup: { tab = .setup })
+                .tabItem { Label(L10n.Tab.remote, systemImage: "keyboard") }
                 .tag(Tab.remote)
             SettingsView()
                 .tabItem { Label(L10n.Tab.settings, systemImage: "slider.horizontal.3") }
@@ -53,7 +39,7 @@ struct ContentView: View {
                 #if os(macOS)
                     if !directInput.isCapturing { showConnectPrompt = true }
                 #else
-                    tab = .keyboard
+                    tab = .remote
                 #endif
             }
             .onAppear(perform: _onAppear)
@@ -83,7 +69,7 @@ struct ContentView: View {
             }
             .alert(L10n.DirectInput.connectedPromptTitle, isPresented: $showConnectPrompt) {
                 Button(L10n.DirectInput.enable) { directInput.start(hid) }
-                Button(L10n.Action.notNow, role: .cancel) { tab = .keyboard }
+                Button(L10n.Action.notNow, role: .cancel) { tab = .remote }
             } message: {
                 Text(L10n.DirectInput.connectedPromptMessage)
                     + Text(verbatim: "\n\n")

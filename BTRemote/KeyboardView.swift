@@ -5,13 +5,7 @@ private let keyHeight: CGFloat = 44
 struct KeyboardView: View {
     let goToSetup: () -> Void
 
-    @EnvironmentObject private var lowEnergy: HIDPeripheral
-    @EnvironmentObject private var central: HIDCentral
-    #if os(macOS)
-        @EnvironmentObject private var classic: HIDClassicDevice
-        @Environment(\.macTransport) private var macTransport
-    #endif
-
+    @Environment(\.hid) private var hid
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     @AppStorage(AppSettings.liveTypingKey) private var liveTyping = true
     @State private var text = ""
@@ -21,56 +15,12 @@ struct KeyboardView: View {
     @FocusState private var focused: Bool
     @StateObject private var typist = KeyTypist()
 
-    private var hid: HIDInput {
-        #if os(macOS)
-            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: macTransport == .classic)
-        #else
-            return HIDInput.make(lowEnergy: lowEnergy, central: central)
-        #endif
-    }
-
     var body: some View {
-        #if os(macOS)
-            NavigationStack { titledScreen }
-        #else
-            NavigationView { titledScreen }
-                .navigationViewStyle(.stack)
-        #endif
-    }
-
-    private var titledScreen: some View {
-        screen
-            .navigationTitle(L10n.Tab.keyboard)
-        #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
-    }
-
-    @ViewBuilder
-    private var screen: some View {
         if hid.isActive || developerMode {
             editor
         } else {
-            emptyState
+            NotConnectedView(icon: "keyboard", goToSetup: goToSetup)
         }
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "keyboard")
-                .font(.system(size: 56))
-                .foregroundColor(.secondary)
-            Text(L10n.Remote.notConnectedTitle)
-                .font(.title2.weight(.semibold))
-            Text(L10n.Remote.notConnectedMessage)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            Button(L10n.Remote.openSetup, action: goToSetup)
-                .buttonStyle(.borderedProminent)
-        }
-        .padding(40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var editor: some View {
@@ -96,7 +46,6 @@ struct KeyboardView: View {
             }
         }
         .padding()
-        .toolbar { modeToggle }
         .onChange(of: liveTyping) { _ in clear() }
         #if os(iOS)
             .ignoresSafeArea(.keyboard, edges: .bottom)
@@ -132,17 +81,6 @@ struct KeyboardView: View {
             Image(systemName: symbol).foregroundStyle(Color.primary)
         }
         .accessibilityLabel(label)
-    }
-
-    @ToolbarContentBuilder
-    private var modeToggle: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
-            Menu {
-                Toggle(L10n.Keyboard.liveTyping, isOn: $liveTyping)
-            } label: {
-                Image(systemName: "ellipsis")
-            }
-        }
     }
 
     private var inputField: some View {
@@ -437,15 +375,6 @@ private final class KeyTypist: ObservableObject {
 
 #if DEBUG
     #Preview {
-        #if os(iOS)
-            KeyboardView(goToSetup: {})
-                .environmentObject(HIDPeripheral())
-                .environmentObject(HIDCentral())
-        #else
-            KeyboardView(goToSetup: {})
-                .environmentObject(HIDPeripheral())
-                .environmentObject(HIDCentral())
-                .environmentObject(HIDClassicDevice())
-        #endif
+        KeyboardView(goToSetup: {})
     }
 #endif

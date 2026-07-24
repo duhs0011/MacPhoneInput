@@ -2,13 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var lowEnergy: HIDPeripheral
-    @EnvironmentObject private var central: HIDCentral
     @EnvironmentObject private var names: DeviceNameStore
+    @Environment(\.hid) private var hid
     @State private var showReset = false
-    #if os(macOS)
-        @EnvironmentObject private var classic: HIDClassicDevice
-        @Environment(\.macTransport) private var macTransport
-    #endif
     @AppStorage(AppSettings.touchpadSensitivityKey) private var touchpadSensitivity = AppSettings.defaultPointerSensitivity
     @AppStorage(AppSettings.scrollSensitivityKey) private var scrollSensitivity = AppSettings.defaultScrollSensitivity
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
@@ -17,14 +13,6 @@ struct SettingsView: View {
     #if os(iOS)
         @AppStorage(AppSettings.autoAdvertiseKey) private var autoAdvertise = true
     #endif
-
-    private var hid: HIDInput {
-        #if os(macOS)
-            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: macTransport == .classic)
-        #else
-            return HIDInput.make(lowEnergy: lowEnergy, central: central)
-        #endif
-    }
 
     var body: some View {
         #if os(macOS)

@@ -39,6 +39,10 @@ enum L10n {
             "remote.open_setup"
         }
 
+        static var mode: LocalizedStringKey {
+            "remote.mode"
+        }
+
         static var back: LocalizedStringKey {
             "remote.back"
         }

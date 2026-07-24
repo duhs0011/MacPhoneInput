@@ -20,19 +20,13 @@ struct SetupView: View {
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
     #endif
 
+    @Environment(\.hid) private var hid
+
     private var classicMode: Bool {
         #if os(macOS)
             return (TransportMode(rawValue: modeRaw) ?? .defaultMode) == .classic
         #else
             return false
-        #endif
-    }
-
-    private var hid: HIDInput {
-        #if os(macOS)
-            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: classicMode)
-        #else
-            return HIDInput.make(lowEnergy: lowEnergy, central: central)
         #endif
     }
 

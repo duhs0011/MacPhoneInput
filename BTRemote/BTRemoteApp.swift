@@ -28,6 +28,14 @@ struct BTRemoteApp: App {
         UserDefaults.standard.register(defaults: [AppSettings.useServiceChangedKey: true])
     }
 
+    private var hid: HIDInput {
+        #if os(macOS)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: currentMode == .classic)
+        #else
+            return HIDInput.make(lowEnergy: lowEnergy, central: central)
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
             #if os(iOS)
@@ -35,6 +43,7 @@ struct BTRemoteApp: App {
                     .environmentObject(lowEnergy)
                     .environmentObject(central)
                     .environmentObject(deviceNames)
+                    .environment(\.hid, hid)
                     .onAppear {
                         central.start()
                         if autoAdvertise { lowEnergy.start() }
@@ -46,6 +55,7 @@ struct BTRemoteApp: App {
                     .environmentObject(classic)
                     .environmentObject(deviceNames)
                     .environment(\.macTransport, currentMode)
+                    .environment(\.hid, hid)
                     .onAppear { _onAppear() }
                     .onChange(of: modeRaw) { _ in _modeChanged() }
             #endif

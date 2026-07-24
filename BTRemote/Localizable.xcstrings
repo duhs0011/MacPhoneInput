@@ -2156,6 +2156,17 @@
           }
         }
       }
+    },
+    "remote.mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

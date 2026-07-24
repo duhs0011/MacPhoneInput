@@ -21,64 +21,15 @@ private struct ConsumerButton {
 struct RemoteView: View {
     let goToSetup: () -> Void
 
-    @EnvironmentObject private var lowEnergy: HIDPeripheral
-    @EnvironmentObject private var central: HIDCentral
+    @Environment(\.hid) private var hid
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
-    #if os(macOS)
-        @EnvironmentObject private var classic: HIDClassicDevice
-        @Environment(\.macTransport) private var macTransport
-    #endif
-
-    private var hid: HIDInput {
-        #if os(macOS)
-            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: macTransport == .classic)
-        #else
-            return HIDInput.make(lowEnergy: lowEnergy, central: central)
-        #endif
-    }
 
     var body: some View {
-        #if os(macOS)
-            NavigationStack { titledScreen }
-        #else
-            NavigationView { titledScreen }
-                .navigationViewStyle(.stack)
-        #endif
-    }
-
-    private var titledScreen: some View {
-        screen
-            .navigationTitle(L10n.Tab.remote)
-        #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
-    }
-
-    @ViewBuilder
-    private var screen: some View {
         if hid.isActive || developerMode {
             controls
         } else {
-            emptyState
+            NotConnectedView(icon: "gamecontroller", goToSetup: goToSetup)
         }
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "gamecontroller")
-                .font(.system(size: 56))
-                .foregroundColor(.secondary)
-            Text(L10n.Remote.notConnectedTitle)
-                .font(.title2.weight(.semibold))
-            Text(L10n.Remote.notConnectedMessage)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            Button(L10n.Remote.openSetup, action: goToSetup)
-                .buttonStyle(.borderedProminent)
-        }
-        .padding(40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var controls: some View {
@@ -226,15 +177,6 @@ struct RemoteView: View {
 
 #if DEBUG
     #Preview {
-        #if os(iOS)
-            RemoteView(goToSetup: {})
-                .environmentObject(HIDPeripheral())
-                .environmentObject(HIDCentral())
-        #else
-            RemoteView(goToSetup: {})
-                .environmentObject(HIDPeripheral())
-                .environmentObject(HIDCentral())
-                .environmentObject(HIDClassicDevice())
-        #endif
+        RemoteView(goToSetup: {})
     }
 #endif
