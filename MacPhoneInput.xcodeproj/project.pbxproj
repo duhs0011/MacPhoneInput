@@ -1,0 +1,488 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		03E6CE025A718F12A04EFF12 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 63772CC9D3656F245AEBE80E /* InfoPlist.xcstrings */; };
+		11FBEA50136604518B7D0769 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823E23254D1FA87D68A62583 /* AppSettings.swift */; };
+		12B96A5A58207BE4F452A8DD /* MacPhoneInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A7110A0D31877ACB820056 /* MacPhoneInputView.swift */; };
+		1571A606A492B454B9A6030B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E7A167ECFD31E3F4C46F1D90 /* PrivacyInfo.xcprivacy */; };
+		2839DFC37382E42150D3A394 /* HIDProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A77BC35D98E3B3D5152C76 /* HIDProfile.swift */; };
+		29A5CE3492E42E64199E5DFC /* HIDReports.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0E6729BA7FCF83655EB92D /* HIDReports.swift */; };
+		2DD826958C096FAE6A9429F9 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F821F931F1D79D73248FC65 /* GlobalHotKey.swift */; };
+		3867977BA049F3769789799E /* DirectInputController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF8B8DA900E3C5BE56F56D10 /* DirectInputController.swift */; };
+		3B36840C6DB579F0C89D3EFB /* HIDReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B07F36C8F66A1591AC0086 /* HIDReportTests.swift */; };
+		3CE622A16BF0A9D81D684DEE /* BTRemoteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F57E364A5DA84C3C79F2466 /* BTRemoteApp.swift */; };
+		82B4621037EB628062384A81 /* HIDPeripheral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 874A2B697F07462F8FF5FB39 /* HIDPeripheral.swift */; };
+		870F76EC32C5B76B3590FB74 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 731717EED15E01B5E333C3CF /* Assets.xcassets */; };
+		AB0435F2D76CD0975707141B /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 29D68BCEB45F3A8E40528700 /* Localizable.xcstrings */; };
+		E7EB4D2A8D13B31E4BE7C2AE /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79856411BF929A830869431D /* AccessibilityPermission.swift */; };
+		F1EFD5E05E0360E20C096065 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38CEC073FF4E9F658568C74 /* L10n.swift */; };
+		F7FC29D65DEF43F011CC79EF /* HIDInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7C7DFC589AB45198439131 /* HIDInput.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		07EC86E29D8AAC0371E4A3A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9A14F8E5F93FFC45DF026D6B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 712CF023DAB72F7274100A8F;
+			remoteInfo = MacPhoneInput;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		16B07F36C8F66A1591AC0086 /* HIDReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDReportTests.swift; sourceTree = "<group>"; };
+		1E7C7DFC589AB45198439131 /* HIDInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDInput.swift; sourceTree = "<group>"; };
+		29D68BCEB45F3A8E40528700 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		3F57E364A5DA84C3C79F2466 /* BTRemoteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTRemoteApp.swift; sourceTree = "<group>"; };
+		3F821F931F1D79D73248FC65 /* GlobalHotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKey.swift; sourceTree = "<group>"; };
+		5AA3B11F4892773A1DD58C88 /* MacPhoneInput.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacPhoneInput.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		63772CC9D3656F245AEBE80E /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		65A77BC35D98E3B3D5152C76 /* HIDProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDProfile.swift; sourceTree = "<group>"; };
+		731717EED15E01B5E333C3CF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		79856411BF929A830869431D /* AccessibilityPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
+		823E23254D1FA87D68A62583 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		83FC01B7B2190202D77ADE28 /* MacPhoneInputTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacPhoneInputTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		874A2B697F07462F8FF5FB39 /* HIDPeripheral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDPeripheral.swift; sourceTree = "<group>"; };
+		95E2E9943CD0E41CC9F05EC4 /* entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = entitlements.plist; sourceTree = "<group>"; };
+		B5A7110A0D31877ACB820056 /* MacPhoneInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacPhoneInputView.swift; sourceTree = "<group>"; };
+		CE0E6729BA7FCF83655EB92D /* HIDReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDReports.swift; sourceTree = "<group>"; };
+		D38CEC073FF4E9F658568C74 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		E7A167ECFD31E3F4C46F1D90 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		FF8B8DA900E3C5BE56F56D10 /* DirectInputController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectInputController.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		42D83DAC1A5C1DC62C6AD87C = {
+			isa = PBXGroup;
+			children = (
+				988EC00CBF39A8B64290CD8F /* BTRemote */,
+				C666B37AF4A873A0EE4C6931 /* Tests */,
+				DC9CE485662280A4A2131312 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		988EC00CBF39A8B64290CD8F /* BTRemote */ = {
+			isa = PBXGroup;
+			children = (
+				A6CC91631C7DA53F99230D2C /* LowEnergy */,
+				79856411BF929A830869431D /* AccessibilityPermission.swift */,
+				823E23254D1FA87D68A62583 /* AppSettings.swift */,
+				731717EED15E01B5E333C3CF /* Assets.xcassets */,
+				3F57E364A5DA84C3C79F2466 /* BTRemoteApp.swift */,
+				FF8B8DA900E3C5BE56F56D10 /* DirectInputController.swift */,
+				95E2E9943CD0E41CC9F05EC4 /* entitlements.plist */,
+				3F821F931F1D79D73248FC65 /* GlobalHotKey.swift */,
+				1E7C7DFC589AB45198439131 /* HIDInput.swift */,
+				63772CC9D3656F245AEBE80E /* InfoPlist.xcstrings */,
+				D38CEC073FF4E9F658568C74 /* L10n.swift */,
+				29D68BCEB45F3A8E40528700 /* Localizable.xcstrings */,
+				B5A7110A0D31877ACB820056 /* MacPhoneInputView.swift */,
+				E7A167ECFD31E3F4C46F1D90 /* PrivacyInfo.xcprivacy */,
+			);
+			path = BTRemote;
+			sourceTree = "<group>";
+		};
+		A6CC91631C7DA53F99230D2C /* LowEnergy */ = {
+			isa = PBXGroup;
+			children = (
+				874A2B697F07462F8FF5FB39 /* HIDPeripheral.swift */,
+				65A77BC35D98E3B3D5152C76 /* HIDProfile.swift */,
+				CE0E6729BA7FCF83655EB92D /* HIDReports.swift */,
+			);
+			path = LowEnergy;
+			sourceTree = "<group>";
+		};
+		C666B37AF4A873A0EE4C6931 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				16B07F36C8F66A1591AC0086 /* HIDReportTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		DC9CE485662280A4A2131312 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5AA3B11F4892773A1DD58C88 /* MacPhoneInput.app */,
+				83FC01B7B2190202D77ADE28 /* MacPhoneInputTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		712CF023DAB72F7274100A8F /* MacPhoneInput */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B7329E2ACB72DDCDE760D490 /* Build configuration list for PBXNativeTarget "MacPhoneInput" */;
+			buildPhases = (
+				60E2B1687B7F4795C5D84983 /* Sources */,
+				FEE296EB7036650EC442086F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MacPhoneInput;
+			packageProductDependencies = (
+			);
+			productName = MacPhoneInput;
+			productReference = 5AA3B11F4892773A1DD58C88 /* MacPhoneInput.app */;
+			productType = "com.apple.product-type.application";
+		};
+		97275B486409BBF072F8414A /* MacPhoneInputTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EE94AFF13D5A0F3D44E7B357 /* Build configuration list for PBXNativeTarget "MacPhoneInputTests" */;
+			buildPhases = (
+				9F93E2CB3459D40DAA855E89 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9938D4F7226AE85A594E8D25 /* PBXTargetDependency */,
+			);
+			name = MacPhoneInputTests;
+			packageProductDependencies = (
+			);
+			productName = MacPhoneInputTests;
+			productReference = 83FC01B7B2190202D77ADE28 /* MacPhoneInputTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9A14F8E5F93FFC45DF026D6B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					712CF023DAB72F7274100A8F = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					97275B486409BBF072F8414A = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C9049FDAF3AC0ABF2C97CB4C /* Build configuration list for PBXProject "MacPhoneInput" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 42D83DAC1A5C1DC62C6AD87C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = DC9CE485662280A4A2131312 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				712CF023DAB72F7274100A8F /* MacPhoneInput */,
+				97275B486409BBF072F8414A /* MacPhoneInputTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FEE296EB7036650EC442086F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				870F76EC32C5B76B3590FB74 /* Assets.xcassets in Resources */,
+				03E6CE025A718F12A04EFF12 /* InfoPlist.xcstrings in Resources */,
+				AB0435F2D76CD0975707141B /* Localizable.xcstrings in Resources */,
+				1571A606A492B454B9A6030B /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		60E2B1687B7F4795C5D84983 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7EB4D2A8D13B31E4BE7C2AE /* AccessibilityPermission.swift in Sources */,
+				11FBEA50136604518B7D0769 /* AppSettings.swift in Sources */,
+				3CE622A16BF0A9D81D684DEE /* BTRemoteApp.swift in Sources */,
+				3867977BA049F3769789799E /* DirectInputController.swift in Sources */,
+				2DD826958C096FAE6A9429F9 /* GlobalHotKey.swift in Sources */,
+				F7FC29D65DEF43F011CC79EF /* HIDInput.swift in Sources */,
+				82B4621037EB628062384A81 /* HIDPeripheral.swift in Sources */,
+				2839DFC37382E42150D3A394 /* HIDProfile.swift in Sources */,
+				29A5CE3492E42E64199E5DFC /* HIDReports.swift in Sources */,
+				F1EFD5E05E0360E20C096065 /* L10n.swift in Sources */,
+				12B96A5A58207BE4F452A8DD /* MacPhoneInputView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F93E2CB3459D40DAA855E89 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B36840C6DB579F0C89D3EFB /* HIDReportTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9938D4F7226AE85A594E8D25 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 712CF023DAB72F7274100A8F /* MacPhoneInput */;
+			targetProxy = 07EC86E29D8AAC0371E4A3A4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1A8AABC11C76B3EF573AB5A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.macphoneinput.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MacPhoneInput.app/Contents/MacOS/MacPhoneInput";
+			};
+			name = Debug;
+		};
+		4078D35135103FA4DB622E5F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A244D3E1783D22F08FD9B4AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = BTRemote/entitlements.plist;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BTRemote/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.macphoneinput.app;
+				PRODUCT_NAME = MacPhoneInput;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		AAD056D1F054639B7C5E0B36 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.macphoneinput.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MacPhoneInput.app/Contents/MacOS/MacPhoneInput";
+			};
+			name = Release;
+		};
+		D685A317E6EB49D19DC04B28 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = BTRemote/entitlements.plist;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BTRemote/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = local.macphoneinput.app;
+				PRODUCT_NAME = MacPhoneInput;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		F89A5770648A1A5BC9456264 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B7329E2ACB72DDCDE760D490 /* Build configuration list for PBXNativeTarget "MacPhoneInput" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A244D3E1783D22F08FD9B4AF /* Debug */,
+				D685A317E6EB49D19DC04B28 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C9049FDAF3AC0ABF2C97CB4C /* Build configuration list for PBXProject "MacPhoneInput" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4078D35135103FA4DB622E5F /* Debug */,
+				F89A5770648A1A5BC9456264 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EE94AFF13D5A0F3D44E7B357 /* Build configuration list for PBXNativeTarget "MacPhoneInputTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A8AABC11C76B3EF573AB5A1 /* Debug */,
+				AAD056D1F054639B7C5E0B36 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9A14F8E5F93FFC45DF026D6B /* Project object */;
+}

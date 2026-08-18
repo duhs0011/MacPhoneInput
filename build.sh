@@ -1,36 +1,23 @@
 #!/usr/bin/env bash
-# nix-shell -p xcodegen swiftlint swiftformat xcbeautify --run "unset LD && ./build.sh"
 
-set -e
-ci_scripts/ci_post_clone.sh
+set -euo pipefail
 
-swiftformat --lint .
-swiftlint lint --strict
-PROJECT="BTRemote"
+PROJECT="MacPhoneInput.xcodeproj"
+SCHEME="MacPhoneInput"
+DERIVED_DATA=".build/DerivedData"
 
-# macOS
-xcodebuild \
-    -project $PROJECT.xcodeproj \
-    -scheme $PROJECT \
+xcodebuild test \
+    -project "$PROJECT" \
+    -scheme "$SCHEME" \
+    -configuration Debug \
+    -destination "platform=macOS,arch=arm64" \
+    -derivedDataPath "$DERIVED_DATA" \
+    CODE_SIGNING_ALLOWED=NO
+
+xcodebuild build \
+    -project "$PROJECT" \
+    -scheme "$SCHEME" \
     -configuration Release \
     -destination "platform=macOS" \
-    -derivedDataPath .build/DerivedData \
-    CODE_SIGNING_ALLOWED=NO \
-    build | xcbeautify
-codesign --force --sign - --entitlements $PROJECT/entitlements.plist .build/DerivedData/Build/Products/Release/$PROJECT.app
-
-# iOS
-xcodebuild \
-    -project $PROJECT.xcodeproj \
-    -scheme $PROJECT \
-    -configuration Release \
-    -sdk iphoneos \
-    -destination "generic/platform=iOS" \
-    -derivedDataPath .build/DerivedData \
-    CODE_SIGNING_ALLOWED=NO \
-    build | xcbeautify
-rm -rf .build/Payload *.ipa
-mkdir -p .build/Payload
-cp -R .build/DerivedData/Build/Products/Release-iphoneos/$PROJECT.app .build/Payload/
-cd .build/
-/usr/bin/zip -qry ../$PROJECT.ipa Payload
+    -derivedDataPath "$DERIVED_DATA" \
+    CODE_SIGNING_ALLOWED=NO

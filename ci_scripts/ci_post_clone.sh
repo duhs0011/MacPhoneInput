@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-which xcodegen || brew install xcodegen
+set -euo pipefail
 
-cd "$CI_PRIMARY_REPOSITORY_PATH"
-for file in company_ids service_uuids; do
-    [ -f "BTRemote/Resources/$file.json" ] || curl -fsSL -o "BTRemote/Resources/$file.json" "https://raw.githubusercontent.com/NordicSemiconductor/bluetooth-numbers-database/master/v1/$file.json"
-done
-xcodegen generate
+cd "${CI_PRIMARY_REPOSITORY_PATH:?CI_PRIMARY_REPOSITORY_PATH is required}"
+test -f MacPhoneInput.xcodeproj/project.pbxproj

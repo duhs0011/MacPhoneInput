@@ -72,23 +72,32 @@ struct HIDInput {
 extension HIDInput {
     #if os(macOS)
         @MainActor
-        static func make(lowEnergy: HIDPeripheral, central: HIDCentral, classic: HIDClassicDevice, classicMode: Bool) -> HIDInput {
-            guard classicMode else { return _lowEnergy(lowEnergy, central) }
+        static func make(lowEnergy: HIDPeripheral) -> HIDInput {
             return HIDInput(
-                sendMouse: { classic.sendMouse($0) },
-                sendKeyboard: { classic.sendKeyboard($0) },
-                sendConsumer: { classic.sendConsumer($0) },
-                updateBattery: { classic.updateBatteryLevel($0) },
-                isActive: classic.isSDPPublished,
-                isConnected: classic.connectedAddress != nil,
-                activeError: classic.lastError,
-                batteryLevel: classic.batteryLevel
+                sendMouse: { lowEnergy.sendMouse($0) },
+                sendKeyboard: { lowEnergy.sendKeyboard($0) },
+                sendConsumer: { lowEnergy.sendConsumer($0) },
+                updateBattery: { lowEnergy.updateBatteryLevel($0) },
+                isActive: lowEnergy.isHIDServiceAdded,
+                isConnected: lowEnergy.connectedCentrals.contains { !lowEnergy.inactiveCentrals.contains($0) },
+                activeError: lowEnergy.lastError,
+                batteryLevel: lowEnergy.batteryLevel
             )
         }
     #else
         @MainActor
         static func make(lowEnergy: HIDPeripheral, central: HIDCentral) -> HIDInput {
-            _lowEnergy(lowEnergy, central)
+            return HIDInput(
+                sendMouse: { lowEnergy.sendMouse($0) },
+                sendKeyboard: { lowEnergy.sendKeyboard($0) },
+                sendConsumer: { lowEnergy.sendConsumer($0) },
+                updateBattery: { lowEnergy.updateBatteryLevel($0) },
+                isActive: lowEnergy.isHIDServiceAdded,
+                isConnected: lowEnergy.connectedCentrals.contains { !lowEnergy.inactiveCentrals.contains($0) }
+                    || !central.connected.isEmpty,
+                activeError: lowEnergy.lastError ?? central.lastError,
+                batteryLevel: lowEnergy.batteryLevel
+            )
         }
     #endif
 
@@ -96,20 +105,6 @@ extension HIDInput {
         HIDInput(
             sendMouse: { _ in }, sendKeyboard: { _ in }, sendConsumer: { _ in }, updateBattery: { _ in },
             isActive: false, isConnected: false, activeError: nil, batteryLevel: 0
-        )
-    }
-
-    @MainActor
-    private static func _lowEnergy(_ lowEnergy: HIDPeripheral, _ central: HIDCentral) -> HIDInput {
-        HIDInput(
-            sendMouse: { lowEnergy.sendMouse($0) },
-            sendKeyboard: { lowEnergy.sendKeyboard($0) },
-            sendConsumer: { lowEnergy.sendConsumer($0) },
-            updateBattery: { lowEnergy.updateBatteryLevel($0) },
-            isActive: lowEnergy.isHIDServiceAdded,
-            isConnected: lowEnergy.connectedCentrals.contains { !lowEnergy.inactiveCentrals.contains($0) } || !central.connected.isEmpty,
-            activeError: lowEnergy.lastError ?? central.lastError,
-            batteryLevel: lowEnergy.batteryLevel
         )
     }
 }

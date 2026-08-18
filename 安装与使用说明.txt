@@ -1,0 +1,55 @@
+MacPhone Input 1.0.1（朋友测试版）
+
+作用
+----
+把 Mac 自带键盘发送到旁边的 iPhone，也可以选择同时使用 Mac 触控板。
+不显示 iPhone 画面，不需要两台设备登录同一个 iCloud 账户，数据只通过蓝牙传输。
+
+已经验证的环境
+--------------
+MacBook Air M4 / macOS 15.7.5
+iPhone 15 Pro
+
+安装与首次打开
+--------------
+1. 打开 DMG，把“MacPhoneInput”拖到“Applications（应用程序）”。
+2. 这是未经过苹果公证的朋友测试版。如果直接双击被 macOS 阻止：
+   - 先按住 Control 点击应用，选择“打开”；或
+   - 打开“系统设置 → 隐私与安全性”，找到拦截提示并选择“仍要打开”。
+3. 在 Mac 的“系统设置 → 隐私与安全性 → 辅助功能”中允许 MacPhoneInput。
+
+iPhone 配对
+-----------
+1. 在 iPhone 打开：
+   “设置 → 辅助功能 → 触控 → 辅助触控 → 设备 → 蓝牙设备”。
+2. 选择 MacPhoneInput，并完成配对。
+3. 配对只需完成一次；之后工具会保持蓝牙连接，不需要每次重新配对。
+
+选择控制方式
+------------
+在 MacPhoneInput 主窗口或菜单栏中选择控制方式：
+
+仅键盘：只把键盘发送到 iPhone。
+- Mac 触控板继续控制 Mac。
+- 完成首次配对后，iPhone 可以关闭“辅助触控”，悬浮圆圈不会出现。
+
+键盘 + 触控板：把键盘和触控板一起发送到 iPhone。
+- iPhone 必须保持“辅助触控”开启。
+- 建议在辅助触控中关闭“显示屏幕键盘”和“始终显示菜单”。
+
+日常使用
+--------
+- 默认按 Control + Option + Space，在控制 iPhone 和控制 Mac 之间切换。
+- 可以在 App 中自定义快捷键；如果与已启用的 macOS 系统快捷键冲突，App 会提示并保留原快捷键。
+- 控制 iPhone 时，按地球/Fn 或 Control + Space 切换 iPhone 输入法。
+- 若要修改控制方式，请先切回 Mac。
+
+关于这个测试包
+--------------
+应用使用 Apple Development 开发证书签名，但没有使用 Developer ID 分发证书，也没有提交苹果公证。
+因此它适合发送给认识的朋友测试，不适合作为面向公众的正式安装包。
+
+开源许可
+--------
+MacPhone Input 基于 darwin-bt-remote 修改，遵循 GNU Affero General Public License v3.0。
+DMG 中包含 LICENSE 和与本测试版对应的完整源代码压缩包。

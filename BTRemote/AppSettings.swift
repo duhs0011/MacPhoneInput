@@ -11,6 +11,12 @@ enum AppSettings {
     static let liveTypingKey = "BTRemote.liveTyping"
     static let remoteModeKey = "BTRemote.remoteMode"
     static let advertisedNameKey = "BTRemote.advertisedName"
+    static let controlTrackpadKey = "MacPhoneInput.controlTrackpad"
+    static let globalShortcutKeyCodeKey = "MacPhoneInput.globalShortcut.keyCode"
+    static let globalShortcutModifiersKey = "MacPhoneInput.globalShortcut.modifiers"
+    static let globalShortcutKeyLabelKey = "MacPhoneInput.globalShortcut.keyLabel"
+    static let defaultAdvertisedName = "MacPhoneInput"
+    static let defaultControlTrackpad = true
 
     static let maxAdvertisedNameLength = 26
 

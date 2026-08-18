@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The latest releases are guaranteed to receive security updates. Please update to the newest version on [App Store](https://apps.apple.com/app/id6778921831) or [GitHub Releases](https://github.com/jqssun/darwin-bt-remote/releases/latest) before reporting an issue.
+Please update to the newest version from [GitHub Releases](https://github.com/duhs0011/MacPhoneInput/releases/latest) before reporting an issue.
 
 | Version | Supported |
 | ------- | --------- |
@@ -13,15 +13,15 @@ The latest releases are guaranteed to receive security updates. Please update to
 
 You may report low-severity security vulnerabilities through GitHub issues. 
 
-For critical security issues, please report them via GitHub's [vulnerability reporting](https://github.com/jqssun/darwin-bt-remote/security/advisories/new).
+For critical security issues, please report them via GitHub's [vulnerability reporting](https://github.com/duhs0011/MacPhoneInput/security/advisories/new).
 
-1. Open the [Security tab](https://github.com/jqssun/darwin-bt-remote/security) of this repository.
+1. Open the [Security tab](https://github.com/duhs0011/MacPhoneInput/security) of this repository.
 2. Select **Report a vulnerability**.
 3. Describe the issue.
 
 To help triage, please include as much as you can:
 
-- Affected version and platform (iOS or macOS, and OS version)
+- Affected version, Mac model, macOS version, iPhone model, and iOS version
 - The vulnerability and its impact
 - Steps to reproduce or a proof of concept
 - Any suggested mitigation

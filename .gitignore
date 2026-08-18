@@ -25,5 +25,5 @@ vendor/bundle/
 *.swp
 
 .DS_Store
-/*.xcodeproj
 *.ipa
+dist/

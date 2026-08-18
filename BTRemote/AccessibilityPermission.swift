@@ -2,15 +2,22 @@
     import AppKit
     import ApplicationServices
 
+    @MainActor
     enum AccessibilityPermission {
         static var isTrusted: Bool {
             AXIsProcessTrusted()
         }
 
-        static func request() {
+        @discardableResult
+        static func request() -> Bool {
+            // kAXTrustedCheckOptionPrompt is imported as mutable global state,
+            // which Swift 6 rejects under strict concurrency. This is its
+            // documented, stable CFString value.
             let promptOption = "AXTrustedCheckOptionPrompt"
-            _ = AXIsProcessTrustedWithOptions([promptOption: true] as CFDictionary)
+            return AXIsProcessTrustedWithOptions([promptOption: true] as CFDictionary)
+        }
 
+        static func openSettings() {
             guard let url = URL(
                 string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
             ) else {

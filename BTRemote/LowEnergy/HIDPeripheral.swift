@@ -3,6 +3,35 @@ import CoreBluetooth
 import os
 import SwiftUI
 
+/// Tracks characteristic *instances*, not only UUIDs. A composite HID service
+/// has several Report (0x2A4D) characteristics with the same UUID. Removing one
+/// subscription must not make the whole iPhone appear disconnected.
+struct HIDSubscriptionBook {
+    private var entries: [UUID: [ObjectIdentifier: CBUUID]] = [:]
+
+    mutating func subscribe(centralID: UUID, characteristic: CBCharacteristic) -> Set<CBUUID> {
+        entries[centralID, default: [:]][ObjectIdentifier(characteristic)] = characteristic.uuid
+        return currentUUIDs(for: centralID)
+    }
+
+    mutating func unsubscribe(centralID: UUID, characteristic: CBCharacteristic) -> Set<CBUUID> {
+        entries[centralID]?.removeValue(forKey: ObjectIdentifier(characteristic))
+        if entries[centralID]?.isEmpty == true {
+            entries.removeValue(forKey: centralID)
+        }
+        return currentUUIDs(for: centralID)
+    }
+
+    mutating func removeAll() {
+        entries.removeAll()
+    }
+
+    func currentUUIDs(for centralID: UUID) -> Set<CBUUID> {
+        guard let values = entries[centralID]?.values else { return [] }
+        return Set(values)
+    }
+}
+
 /// HID-over-GATT peripheral engine
 @MainActor
 final class HIDPeripheral: NSObject, ObservableObject {
@@ -19,11 +48,14 @@ final class HIDPeripheral: NSObject, ObservableObject {
     @Published private(set) var batteryLevel: UInt8 = 100
 
     private var centralObjects: [UUID: CBCentral] = [:]
+    private var subscriptionBook = HIDSubscriptionBook()
 
-    var advertiseLocalName: String = UserDefaults.standard.string(forKey: AppSettings.advertisedNameKey) ?? L10n.Bluetooth.advertisedName
+    var advertiseLocalName: String = UserDefaults.standard.string(forKey: AppSettings.advertisedNameKey)
+        ?? AppSettings.defaultAdvertisedName
 
-    private let log = Logger(subsystem: "io.github.jqssun.btremote", category: "HIDPeripheral")
+    private let log = Logger(subsystem: "local.macphoneinput.app", category: "HIDPeripheral")
     private var pManager: CBPeripheralManager?
+    private var genericAccessServiceObj: CBMutableService?
     private var batteryServiceObj: CBMutableService?
     private var deviceInfoServiceObj: CBMutableService?
     private var hidServiceObj: CBMutableService?
@@ -47,7 +79,11 @@ final class HIDPeripheral: NSObject, ObservableObject {
         ReportID.consumerControl.rawValue: ConsumerReport.zero.data
     ]
 
-    private var pendingBroadcast: (Data, CBMutableCharacteristic)?
+    /// CoreBluetooth accepts notifications until its transmit buffer fills,
+    /// then asks us to retry later. Keep every HID edge in order: replacing a
+    /// single pending value can turn a key down/up pair into only the key up.
+    private var pendingBroadcasts: [(Data, CBMutableCharacteristic)] = []
+    private static let maximumPendingBroadcasts = 256
 
     func start() {
         isHIDServiceAllowed = true
@@ -84,7 +120,8 @@ final class HIDPeripheral: NSObject, ObservableObject {
         isAdvertising = false
         isHIDServiceAdded = false
         isReadyToSendNotification = true
-        pendingBroadcast = nil
+        pendingBroadcasts.removeAll()
+        genericAccessServiceObj = nil
         batteryServiceObj = nil
         deviceInfoServiceObj = nil
         hidServiceObj = nil
@@ -96,6 +133,7 @@ final class HIDPeripheral: NSObject, ObservableObject {
         bootKeyboardOutputChar = nil
         charsByReportID.removeAll()
         subscribedCentrals.removeAll()
+        subscriptionBook.removeAll()
         inactiveCentrals.removeAll()
         connectedCentrals.removeAll()
         centralObjects.removeAll()
@@ -178,10 +216,31 @@ final class HIDPeripheral: NSObject, ObservableObject {
     }
 
     private func installServices() {
-        guard let pManager, !isHIDServiceAdded, batteryServiceObj == nil else { return }
-        let battery = buildBatteryService()
-        batteryServiceObj = battery
-        pManager.add(battery)
+        guard let pManager, !isHIDServiceAdded, genericAccessServiceObj == nil else { return }
+        let genericAccess = buildGenericAccessService()
+        genericAccessServiceObj = genericAccess
+        pManager.add(genericAccess)
+    }
+
+    /// Publishes the post-pairing GAP name. Without this service, iOS replaces the
+    /// advertised app name with the Mac's system computer name after connecting.
+    private func buildGenericAccessService() -> CBMutableService {
+        let service = CBMutableService(type: HIDProfile.genericAccessService, primary: true)
+        service.characteristics = [
+            CBMutableCharacteristic(
+                type: HIDProfile.deviceName,
+                properties: .read,
+                value: Data(advertiseLocalName.utf8),
+                permissions: .readable
+            ),
+            CBMutableCharacteristic(
+                type: HIDProfile.appearance,
+                properties: .read,
+                value: HIDProfile.keyboardAppearanceValue,
+                permissions: .readable
+            )
+        ]
+        return service
     }
 
     private func buildDeviceInfoService() -> CBMutableService {
@@ -253,14 +312,14 @@ final class HIDPeripheral: NSObject, ObservableObject {
             permissions: .readEncryptionRequired
         )
 
-        let bootMouseInput = CBMutableCharacteristic(
-            type: HIDProfile.bootMouseInputReport,
+        let bootKbdInput = CBMutableCharacteristic(
+            type: HIDProfile.bootKeyboardInputReport,
             properties: [.read, .notifyEncryptionRequired],
             value: nil,
             permissions: [.readEncryptionRequired, .writeEncryptionRequired]
         )
-        let bootKbdInput = CBMutableCharacteristic(
-            type: HIDProfile.bootKeyboardInputReport,
+        let bootMouseInput = CBMutableCharacteristic(
+            type: HIDProfile.bootMouseInputReport,
             properties: [.read, .notifyEncryptionRequired],
             value: nil,
             permissions: [.readEncryptionRequired, .writeEncryptionRequired]
@@ -287,9 +346,6 @@ final class HIDPeripheral: NSObject, ObservableObject {
         ]
 
         // report characteristic order matters
-        let systemReportChar = makeReportChar(.systemControl, type: .input)
-        let consumerReportChar = makeReportChar(.consumerControl, type: .input)
-        let mouseReportChar = makeReportChar(.mouse, type: .input)
         let keyboardReportChar = makeReportChar(.keyboard, type: .input)
         let outputReportChar = CBMutableCharacteristic(
             type: HIDProfile.report,
@@ -303,20 +359,23 @@ final class HIDPeripheral: NSObject, ObservableObject {
                 value: NSData(data: ReportID.keyboardLEDs.descriptor(.output))
             )
         ]
+        let mouseReportChar = makeReportChar(.mouse, type: .input)
+        let systemReportChar = makeReportChar(.systemControl, type: .input)
+        let consumerReportChar = makeReportChar(.consumerControl, type: .input)
 
         service.characteristics = [
             controlPoint,
             protocolMode,
             hidInfo,
-            bootMouseInput,
             bootKbdInput,
             bootKbdOutput,
+            bootMouseInput,
             reportMap,
-            systemReportChar,
-            consumerReportChar,
-            mouseReportChar,
             keyboardReportChar,
-            outputReportChar
+            outputReportChar,
+            mouseReportChar,
+            systemReportChar,
+            consumerReportChar
         ]
 
         bootMouseInputChar = bootMouseInput
@@ -365,27 +424,40 @@ final class HIDPeripheral: NSObject, ObservableObject {
         let recipients = activeRecipients()
         guard !recipients.isEmpty else { return false }
         if !isReadyToSendNotification {
-            pendingBroadcast = (data, char)
+            enqueueBroadcast(data, for: char)
             return false
         }
         let accepted = pManager.updateValue(data, for: char, onSubscribedCentrals: recipients)
         if !accepted {
             isReadyToSendNotification = false
-            pendingBroadcast = (data, char)
+            enqueueBroadcast(data, for: char)
         }
         return accepted
     }
 
-    private func drainPendingBroadcast() {
-        guard let (data, char) = pendingBroadcast, let pManager else { return }
-        pendingBroadcast = nil
-        let recipients = activeRecipients()
-        guard !recipients.isEmpty else { return }
-        let accepted = pManager.updateValue(data, for: char, onSubscribedCentrals: recipients)
-        if !accepted {
-            isReadyToSendNotification = false
-            pendingBroadcast = (data, char)
+    private func enqueueBroadcast(_ data: Data, for char: CBMutableCharacteristic) {
+        if pendingBroadcasts.count >= Self.maximumPendingBroadcasts {
+            pendingBroadcasts.removeFirst()
         }
+        pendingBroadcasts.append((data, char))
+    }
+
+    private func drainPendingBroadcast() {
+        guard let pManager else { return }
+        while let (data, char) = pendingBroadcasts.first {
+            let recipients = activeRecipients()
+            guard !recipients.isEmpty else {
+                pendingBroadcasts.removeAll()
+                return
+            }
+            if pManager.updateValue(data, for: char, onSubscribedCentrals: recipients) {
+                pendingBroadcasts.removeFirst()
+            } else {
+                isReadyToSendNotification = false
+                return
+            }
+        }
+        isReadyToSendNotification = true
     }
 
     private func _trace(_ message: @autoclosure () -> String) {
@@ -443,6 +515,10 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
             lastError = error.localizedDescription
         }
         switch service.uuid {
+        case HIDProfile.genericAccessService:
+            let battery = buildBatteryService()
+            batteryServiceObj = battery
+            peripheral.add(battery)
         case HIDProfile.batteryService:
             let dis = buildDeviceInfoService()
             deviceInfoServiceObj = dis
@@ -476,7 +552,10 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
         didSubscribeTo characteristic: CBCharacteristic
     ) {
         _trackInteraction(from: central)
-        subscribedCentrals[central.identifier, default: []].insert(characteristic.uuid)
+        subscribedCentrals[central.identifier] = subscriptionBook.subscribe(
+            centralID: central.identifier,
+            characteristic: characteristic
+        )
         _trace("subscribe: \(central.identifier) -> \(characteristic.uuid)")
         if let id = reportID(forCharacteristic: characteristic),
            let cached = cachedReports[id],
@@ -498,8 +577,10 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
         didUnsubscribeFrom characteristic: CBCharacteristic
     ) {
         _trace("unsubscribe: \(central.identifier) <- \(characteristic.uuid)")
-        guard var chars = subscribedCentrals[central.identifier] else { return }
-        chars.remove(characteristic.uuid)
+        let chars = subscriptionBook.unsubscribe(
+            centralID: central.identifier,
+            characteristic: characteristic
+        )
         if chars.isEmpty {
             subscribedCentrals.removeValue(forKey: central.identifier)
             centralObjects.removeValue(forKey: central.identifier)

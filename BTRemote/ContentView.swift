@@ -62,7 +62,8 @@ struct ContentView: View {
                 directInput.clearAccessibilityRequest()
             }
             .alert(L10n.DirectInput.permissionTitle, isPresented: $showAccessibilityPrompt) {
-                Button(L10n.DirectInput.openSettings) { AccessibilityPermission.request() }
+                Button("请求系统授权") { AccessibilityPermission.request() }
+                Button(L10n.DirectInput.openSettings) { AccessibilityPermission.openSettings() }
                 Button(L10n.Action.notNow, role: .cancel) {}
             } message: {
                 Text(L10n.DirectInput.permissionMessage)

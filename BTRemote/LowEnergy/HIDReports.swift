@@ -151,6 +151,7 @@ enum ConsumerKey: UInt16, Sendable, Equatable {
     case scanNext = 0x00B5
     case scanPrev = 0x00B6
     case stop = 0x00B7
+    case eject = 0x00B8
     case rewind = 0x00B4
     case fastForward = 0x00B3
     case mute = 0x00E2

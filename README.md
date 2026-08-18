@@ -1,77 +1,82 @@
-# Bluetooth HID Remote for iOS & macOS
+# MacPhone Input
 
-[![Stars](https://img.shields.io/github/stars/jqssun/darwin-bt-remote?label=stars&logo=GitHub)](https://github.com/jqssun/darwin-bt-remote)
-[![GitHub](https://img.shields.io/github/downloads/jqssun/darwin-bt-remote/total?label=GitHub&logo=GitHub)](https://github.com/jqssun/darwin-bt-remote/releases)
-[![license](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE)
-[![build](https://img.shields.io/github/actions/workflow/status/jqssun/darwin-bt-remote/build.yml?label=build)](https://github.com/jqssun/darwin-bt-remote/actions/workflows/build.yml)
-[![release](https://img.shields.io/github/v/release/jqssun/darwin-bt-remote)](https://github.com/jqssun/darwin-bt-remote/releases)
+把 Mac 自带键盘和触控板变成 iPhone 的蓝牙外接键盘与鼠标。
 
-**Remote** is the first device-agnostic open-source app that turns an iPhone, iPad, or Mac into a generic Bluetooth keyboard, mouse, and trackpad, and that works reliably across every major platform. Use any Apple device as a serverless wireless remote for anything that accepts Bluetooth input, with no companion app needed on the target.
+MacPhone Input 不镜像 iPhone 屏幕，不需要两台设备登录同一个 Apple 账号，也不需要在 iPhone 安装配套 App。输入数据只通过蓝牙 BLE HID 发送。
 
-As the Apple counterpart of [BT Remote for Android](https://github.com/jqssun/android-bt-remote), it acts as a Bluetooth HID controller for Windows, Linux, macOS, iOS (and iPadOS), tvOS, Android (and Android TV, Google TV, Fire OS), ChromeOS, and SteamOS, plus any other host that supports a standard Bluetooth keyboard or mouse.
+> 当前是朋友测试版，已在 MacBook Air M4（macOS 15.7.5）与 iPhone 15 Pro 上完成实机验证。其他设备和系统版本仍需要更多测试。
 
-Unlike network remote-control tools, it needs nothing installed on the target and relies solely on the host's built-in Bluetooth HID support. Your Apple device presents itself as a standard [Bluetooth Human Interface Device (HID)](https://www.bluetooth.com/specifications/specs/hid-service-specification/) and sends keyboard, media, and mouse input directly over Bluetooth. It also features a direct input mode where you can forward the currently connected hardware input straight to the target device.
+## 下载
 
-[<img height="48" alt="Get it on App Store" src="https://jqssun.github.io/images/badges/apple-app-store.svg">](https://apps.apple.com/app/id6778921831)
-[<img height="48" alt="Get it on GitHub" src="https://jqssun.github.io/images/badges/github.svg">](https://github.com/jqssun/darwin-bt-remote/releases/latest)
+从 [GitHub Releases](https://github.com/duhs0011/MacPhoneInput/releases/latest) 下载最新 DMG。
 
-| Devices | Android | Apple (iOS or macOS) | Windows |
-| :---: | :---: | :---: | :---: |
-| **iOS Controller** | <video loop src='https://github.com/user-attachments/assets/7a1853ba-d4b0-4def-97dc-4de5f4a5a114' alt="iOS controlling Android" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/bab84d16-b154-40d4-b9ed-f27c462b67b0' alt="iOS controlling macOS" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/ad35c59a-f1bb-4e09-a53c-2433c37ade7a' alt="iOS controlling Windows" width="260"></video> |
-| **macOS Controller** | <video loop src='https://github.com/user-attachments/assets/da88c42e-680c-43d2-8263-0180486860e0' alt="macOS controlling Android" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/913a7cb7-b9d4-4d33-be6f-0262dc1ea8d2' alt="macOS controlling iOS" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/d29c964a-3d34-400d-bc5d-fe1670c91c29' alt="macOS controlling Windows" width="260"></video> |
+当前测试包尚未使用 Developer ID 公证。首次打开时，可能需要按住 Control 点击 App 选择“打开”，或前往“系统设置 → 隐私与安全性”选择“仍要打开”。
 
-## Compatibility
+## 功能
 
-- HID device (controller):
-    - iOS 15 (iPadOS 15) and later
-    - macOS 13 and later
+- 使用 Mac 键盘在 iPhone 上输入文字
+- 可选用 Mac 触控板移动、点击、拖动和双指滚动
+- 一键在控制 Mac 与控制 iPhone 之间切换，蓝牙连接保持不断开
+- 自定义全局快捷键，并检查 macOS 系统快捷键冲突
+- Fn/地球键或 Control + Space 切换 iPhone 输入法
+- 支持数字键选择中文输入候选项
+- 连接外接键盘时隐藏 iPhone 屏幕键盘，停止控制后恢复
+- 控制 iPhone 时拦截对应的 Mac 键盘和触控板事件
 
-- HID host (target):
-    - Android 4 and later
-    - Android TV, Google TV, and Fire OS
-    - ChromeOS
-    - iOS 13 (iPadOS 13) and later
-    - iOS 4 and later (keyboard only)
-    - tvOS 9.2 and later
-    - Mac OS X 10.3 and later
-    - Linux kernel 2.6 and later
-    - SteamOS
-    - Windows XP Service Pack 2 and later
+默认切换快捷键是 `Control + Option + Space`。
 
-## Implementation
+## 两种控制方式
 
-The app includes two HID backends and picks the right one depending on platform:
+### 仅键盘
 
-| backend | profile | platform | path | description |
-|---|---|---|---|---|
-| Bluetooth Classic | HID Profile | macOS | [`BTRemote/Classic`](BTRemote/Classic) | IOBluetooth SDP record with L2CAP control and interrupt channels |
-| Bluetooth Low Energy | HID over GATT Profile | macOS, iOS | [`BTRemote/LowEnergy`](BTRemote/LowEnergy) | CoreBluetooth peripheral exposing the HID service |
+键盘控制 iPhone，触控板继续控制 Mac。完成首次配对后，iPhone 可以关闭“辅助触控”。
 
-Both backends emit the same HID report descriptors, supporting HID usages for `mouse` (relative mouse input with scroll wheel), `keyboard` (with LED output reports for state indicators), `consumerControl` (for multimedia keys), and `systemControl` (including power and sleep management).
+### 键盘 + 触控板
 
-Check out [`build.sh`](build.sh) for development builds, or the [CI](.github/workflows/build.yml) for building with [`fastlane`](https://github.com/fastlane/fastlane).
+键盘和触控板一起控制 iPhone。支持移动指针、单击、按住拖动和双指纵向滚动。
 
-## Development
+iPhone 必须打开“设置 → 辅助功能 → 触控 → 辅助触控”。受 iPhone 系统限制，目前不支持捏合缩放及三指、四指系统手势。
 
-This Bluetooth HID stack is manually developed over weeks of working around a list of undocumented platform behaviors to ensure it pairs and streams input fast and reliably on all OS versions above iOS 15 and macOS 13. Making changes to this stack is highly discouraged as it is likely to break SDP negotiation, GATT layout, or bonding handshake, with no clear error logs. Some key constraints to be aware of:
+## 首次使用
 
-### iOS (HOGP)
+1. 打开 DMG，把 `MacPhoneInput.app` 拖进“应用程序”。
+2. 启动 App，在 Mac 的“系统设置 → 隐私与安全性 → 辅助功能”中允许 MacPhone Input。
+3. 在 iPhone 打开“设置 → 辅助功能 → 触控 → 辅助触控 → 设备 → 蓝牙设备”。
+4. 选择 `MacPhoneInput` 并完成配对。
+5. 回到 App 选择“仅键盘”或“键盘 + 触控板”。
+6. 使用默认或自定义快捷键切换输入去向。
 
-- iOS exposes no HID device role, so the full HOGP GATT tree must be manually constructed in `CBPeripheralManager` and the existing implementation of service, characteristic, and descriptor layout must be adhered to for pairing and input streaming to consistently work
-- SIG UUIDs must be declared with the full 128-bit canonical string since the 16-bit short form is rejected as system reserved
-- `.extendedProperties` must not be set on Protocol Mode, Boot Keyboard Output, or Output Report characteristics since it implicitly appends a descriptor that alters the GATT layout and breaks host's HID binding
-- Hosts may stall after subscribing until a baseline input report is pushed, and therefore an initial report on subscribe is required
-- Encryption and bonding are mandatory, and a stale bond on either side triggers teardowns that only a full re-pair clears
+配对通常只需完成一次。只要 App 保持运行，日常切换不需要重新连接蓝牙。
 
-### macOS (HIDP)
+## 系统要求
 
-- `bluetoothd` binds the HID L2CAP ports at startup and always operates as the HID host; this means the stack is restricted to outbound connections and can never listen for inbound
-- `bluetoothd` performs an SDP lookup for HID device record on the peer on every inbound attempt; Windows hosts expose no such record, so the daemon resets the connection
-- `bluetoothd` withdraws competing outbound L2CAP channels, which surfaces on Windows as the outbound open failing with "No Resources Available"
-- `bluetoothd` cannot be switched into device role by any SDP attribute or IOBluetooth flag, so in HIDP mode it can only reach stacks that accept device-initiated connections, namely Android; Windows is unreachable via HIDP by design
+- macOS 15 或更高版本
+- 支持 BLE 的 Mac
+- iPhone 15 Pro 已验证
+- 如需触控板控制，iPhone 必须开启辅助触控
 
-## License
+## 开发与测试
 
-[AGPL-3.0-only](LICENSE). Commercial license is available upon request.
+工程包含已提交的 `MacPhoneInput.xcodeproj`，可直接使用 Xcode 打开。也可以执行：
 
-Bundling this software into closed-source commercial applications, proprietary products, or App Store distributions without an explicit commercial license is copyright infringement.
+```sh
+./build.sh
+```
+
+单独运行测试：
+
+```sh
+xcodebuild test \
+  -project MacPhoneInput.xcodeproj \
+  -scheme MacPhoneInput \
+  -destination 'platform=macOS,arch=arm64' \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+## 隐私
+
+App 不包含账号系统、网络服务器或统计 SDK。键盘和触控板事件通过本地蓝牙连接发送给已配对的 iPhone。
+
+## 开源许可
+
+本项目基于 [darwin-bt-remote](https://github.com/jqssun/darwin-bt-remote) 修改，遵循 [GNU Affero General Public License v3.0](LICENSE)。分发修改版或基于本项目提供网络服务时，请遵守许可证规定并提供对应源码。

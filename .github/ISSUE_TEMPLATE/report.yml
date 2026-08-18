@@ -5,9 +5,9 @@ body:
     attributes:
       value: |
         ### Important
-        Before reporting a new issue, please check if it already exists in the [issue tracker](https://github.com/jqssun/darwin-bt-remote/issues).
+        Before reporting a new issue, please check if it already exists in the [issue tracker](https://github.com/duhs0011/MacPhoneInput/issues).
         
-        We aim to keep things fast, lightweight, and responsive for pairing and general use across all platforms. If you notice any performance issues, please attach logs from both the host and target devices if possible.
+        Please describe whether the problem affects keyboard input, trackpad control, Bluetooth pairing, or input switching.
    
   - type: checkboxes
     id: checklist
@@ -22,7 +22,7 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Please provide the app version installed on the host device, as well as the device model and operating system version for both the host and target devices if possible.
+      description: Please provide the app version, Mac model, macOS version, iPhone model, and iOS version.
     validations:
       required: false
 

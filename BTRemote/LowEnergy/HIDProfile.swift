@@ -6,6 +6,7 @@ enum HIDProfile {
     // use full UUID strings: CBPeripheralManager rejects short-form service UUIDs
 
     // services
+    nonisolated(unsafe) static let genericAccessService = CBUUID(string: "00001800-0000-1000-8000-00805F9B34FB")
     nonisolated(unsafe) static let batteryService = CBUUID(string: "0000180F-0000-1000-8000-00805F9B34FB")
     nonisolated(unsafe) static let deviceInformationService = CBUUID(string: "0000180A-0000-1000-8000-00805F9B34FB")
     nonisolated(unsafe) static let hidService = CBUUID(string: "00001812-0000-1000-8000-00805F9B34FB")
@@ -16,6 +17,8 @@ enum HIDProfile {
     nonisolated(unsafe) static let reportReference = CBUUID(string: "00002908-0000-1000-8000-00805F9B34FB")
 
     // characteristics
+    nonisolated(unsafe) static let deviceName = CBUUID(string: "00002A00-0000-1000-8000-00805F9B34FB")
+    nonisolated(unsafe) static let appearance = CBUUID(string: "00002A01-0000-1000-8000-00805F9B34FB")
     nonisolated(unsafe) static let batteryLevel = CBUUID(string: "00002A19-0000-1000-8000-00805F9B34FB")
     nonisolated(unsafe) static let bootKeyboardInputReport = CBUUID(string: "00002A22-0000-1000-8000-00805F9B34FB")
     nonisolated(unsafe) static let bootKeyboardOutputReport = CBUUID(string: "00002A32-0000-1000-8000-00805F9B34FB")
@@ -37,14 +40,22 @@ enum HIDProfile {
     /// battery level (0x2A19), little-endian
     static let externalReportReferenceValue = Data([0x19, 0x2A])
 
-    static let manufacturerNameValue = Data("BTRemote".utf8)
-    static let modelNumberValue = Data("BTRemote-1.0".utf8)
+    static let manufacturerNameValue = Data("MacPhoneInput".utf8)
+    static let modelNumberValue = Data("MacPhoneInput-1.0".utf8)
+
+    /// Bluetooth Assigned Numbers: Keyboard appearance 0x03C1, little-endian.
+    ///
+    /// This remains a composite HID report map (keyboard + pointer), but making
+    /// the keyboard the primary GAP identity is important on iPhone: it enables
+    /// the external-hardware-keyboard path instead of treating key reports as an
+    /// accessory of the AssistiveTouch pointer.
+    static let keyboardAppearanceValue = Data([0xC1, 0x03])
 
     /// PnP ID: VendorIDSource(BTSIG=1), VendorID 0xFFFF (test), ProductID 0x0001, Version 0x0100
     static let pnpIDValue = Data([0x01, 0xFF, 0xFF, 0x01, 0x00, 0x00, 0x01])
 }
 
-enum ReportID: UInt8 {
+enum ReportID: UInt8, CaseIterable {
     case mouse = 1
     case keyboard = 2
     case keyboardLEDs = 3
@@ -68,35 +79,8 @@ extension ReportID {
 /// 239-byte HID report map
 extension HIDProfile {
     static let reportMapData = Data([
-        // mouse, Report ID 1 (52 bytes)
-        0x05, 0x01, // Usage Page (Generic Desktop)
-        0x09, 0x02, // Usage (Mouse)
-        0xA1, 0x01, // Collection (Application)
-        0x85, 0x01, //   Report ID (1)
-        0x09, 0x01, //   Usage (Pointer)
-        0xA1, 0x00, //   Collection (Physical)
-        0x05, 0x09, //     Usage Page (Button)
-        0x19, 0x01, //     Usage Min (1)
-        0x29, 0x03, //     Usage Max (3)
-        0x75, 0x01, //     Report Size (1)
-        0x95, 0x03, //     Report Count (3)
-        0x15, 0x00, //     Logical Min (0)
-        0x25, 0x01, //     Logical Max (1)
-        0x81, 0x02, //     Input (Data,Var,Abs)
-        0x95, 0x05, //     Report Count (5)
-        0x81, 0x03, //     Input (Const,Var,Abs) padding
-        0x05, 0x01, //     Usage Page (Generic Desktop)
-        0x09, 0x30, //     Usage (X)
-        0x09, 0x31, //     Usage (Y)
-        0x09, 0x38, //     Usage (Wheel)
-        0x75, 0x08, //     Report Size (8)
-        0x95, 0x03, //     Report Count (3)
-        0x15, 0x81, //     Logical Min (-127)
-        0x25, 0x7F, //     Logical Max (127)
-        0x81, 0x06, //     Input (Data,Var,Rel)
-        0xC0, //   End Collection
-        0xC0, // End Collection
-
+        // Keep keyboard as the first top-level application collection. iPhone
+        // uses the primary collection when classifying a composite HID device.
         // keyboard input + LED output, Report IDs 2 and 3 (61 bytes)
         0x05, 0x01, // Usage Page (Generic Desktop)
         0x09, 0x06, // Usage (Keyboard)
@@ -128,6 +112,35 @@ extension HIDProfile {
         0x91, 0x02, //   Output (Data,Var,Abs): 5 LED bits
         0x95, 0x03, //   Report Count (3)
         0x91, 0x03, //   Output (Const,Var,Abs): LED padding
+        0xC0, // End Collection
+
+        // mouse, Report ID 1 (52 bytes)
+        0x05, 0x01, // Usage Page (Generic Desktop)
+        0x09, 0x02, // Usage (Mouse)
+        0xA1, 0x01, // Collection (Application)
+        0x85, 0x01, //   Report ID (1)
+        0x09, 0x01, //   Usage (Pointer)
+        0xA1, 0x00, //   Collection (Physical)
+        0x05, 0x09, //     Usage Page (Button)
+        0x19, 0x01, //     Usage Min (1)
+        0x29, 0x03, //     Usage Max (3)
+        0x75, 0x01, //     Report Size (1)
+        0x95, 0x03, //     Report Count (3)
+        0x15, 0x00, //     Logical Min (0)
+        0x25, 0x01, //     Logical Max (1)
+        0x81, 0x02, //     Input (Data,Var,Abs)
+        0x95, 0x05, //     Report Count (5)
+        0x81, 0x03, //     Input (Const,Var,Abs) padding
+        0x05, 0x01, //     Usage Page (Generic Desktop)
+        0x09, 0x30, //     Usage (X)
+        0x09, 0x31, //     Usage (Y)
+        0x09, 0x38, //     Usage (Wheel)
+        0x75, 0x08, //     Report Size (8)
+        0x95, 0x03, //     Report Count (3)
+        0x15, 0x81, //     Logical Min (-127)
+        0x25, 0x7F, //     Logical Max (127)
+        0x81, 0x06, //     Input (Data,Var,Rel)
+        0xC0, //   End Collection
         0xC0, // End Collection
 
         // battery via HID, Report ID 4 (23 bytes)
