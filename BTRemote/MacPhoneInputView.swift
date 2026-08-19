@@ -74,14 +74,13 @@ struct MacPhoneInputView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Button(action: directInput.toggle) {
                     Label(
-                        directInput.isCapturing ? "切回 Mac" : "开始控制 iPhone",
-                        systemImage: directInput.isCapturing ? "laptopcomputer" : "iphone"
+                        primaryControlTitle,
+                        systemImage: primaryControlIcon
                     )
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(!hid.isConnected && !directInput.isCapturing)
 
                 if directInput.needsAccessibility && !directInput.hasAccessibilityPermission {
                     accessibilityPermissionGuide
@@ -240,7 +239,20 @@ struct MacPhoneInputView: View {
                 ? "当前：键盘 + 触控板 → iPhone"
                 : "当前：键盘正在控制 iPhone，触控板仍控制 Mac"
         }
+        if !hid.isConnected {
+            return "尚未连接 iPhone；连接后可用快捷键切换输入去向。"
+        }
         return "蓝牙保持连接；快捷键只切换输入去向。"
+    }
+
+    private var primaryControlTitle: String {
+        if directInput.isCapturing { return "切回 Mac" }
+        return hid.isConnected ? "开始控制 iPhone" : "连接 iPhone…"
+    }
+
+    private var primaryControlIcon: String {
+        if directInput.isCapturing { return "laptopcomputer" }
+        return hid.isConnected ? "iphone" : "cable.connector"
     }
 
     private var pairingStepTwo: String {
@@ -325,11 +337,12 @@ struct MacPhoneInputMenuView: View {
         Button(
             directInput.isCapturing
                 ? "切回 Mac  \(directInput.globalShortcut.displayText)"
-                : "控制 iPhone  \(directInput.globalShortcut.displayText)"
+                : hid.isConnected
+                    ? "控制 iPhone  \(directInput.globalShortcut.displayText)"
+                    : "连接 iPhone…  \(directInput.globalShortcut.displayText)"
         ) {
             directInput.toggle()
         }
-        .disabled(!hid.isConnected && !directInput.isCapturing)
         Picker("控制方式", selection: trackpadBinding) {
             Text("仅键盘").tag(false)
             Text("键盘 + 触控板").tag(true)

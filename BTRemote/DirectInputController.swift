@@ -27,15 +27,24 @@
         private var hiddenCursorDisplay: CGDirectDisplayID?
         private var usedAppKitCursorFallback = false
         private var disconnectTask: Task<Void, Never>?
-        private var softwareKeyboardShownByUs = false
+        private var softwareKeyboardRestoreTask: Task<Void, Never>?
+        private var softwareKeyboardConnectionResetTask: Task<Void, Never>?
+        private var softwareKeyboardState = SoftwareKeyboardStateMachine()
         private var isRecordingGlobalShortcut = false
+        private let connectionHelpPresenter: @MainActor () -> Void
+        private let softwareKeyboardRestoreDelayNanoseconds: UInt64
 
         private var sendKeyboard: ((KeyboardReport) -> Void)?
         private var sendMouse: ((MouseReport) -> Void)?
         private var sendConsumer: ((ConsumerReport) -> Void)?
         private var onRelease: (() -> Void)?
 
-        init() {
+        init(
+            softwareKeyboardRestoreDelayNanoseconds: UInt64 = 800_000_000,
+            connectionHelpPresenter: @escaping @MainActor () -> Void = DirectInputConnectionAlert.present
+        ) {
+            self.connectionHelpPresenter = connectionHelpPresenter
+            self.softwareKeyboardRestoreDelayNanoseconds = softwareKeyboardRestoreDelayNanoseconds
             hasAccessibilityPermission = AccessibilityPermission.isTrusted
             controlsTrackpad = UserDefaults.standard.object(forKey: AppSettings.controlTrackpadKey) as? Bool
                 ?? AppSettings.defaultControlTrackpad
@@ -123,9 +132,16 @@
         func configure(_ hid: HIDInput) {
             configuredHID = hid
             isDeviceConnected = hid.isConnected
+            performSoftwareKeyboardActions(
+                softwareKeyboardState.connectionChanged(hid.isConnected),
+                using: hid.sendConsumer
+            )
             if hid.isConnected {
                 disconnectTask?.cancel()
                 disconnectTask = nil
+                if lastError == DirectInputConnectionAlert.inlineMessage {
+                    lastError = nil
+                }
             } else if isCapturing, disconnectTask == nil {
                 // iPhone may briefly swap HID report subscriptions while it
                 // changes keyboard/pointer mode. Only release Mac input if the
@@ -149,7 +165,8 @@
                 return
             }
             guard let hid = configuredHID, hid.isConnected else {
-                lastError = "iPhone 尚未连接。请先在 iPhone 的蓝牙设置中连接 MacPhoneInput。"
+                lastError = DirectInputConnectionAlert.inlineMessage
+                connectionHelpPresenter()
                 return
             }
             start(hid)
@@ -228,15 +245,14 @@
                 }
             }
             isCapturing = true
-            if softwareKeyboardShownByUs {
-                tapEject()
-                softwareKeyboardShownByUs = false
-            }
+            performSoftwareKeyboardActions(
+                softwareKeyboardState.captureStarted(),
+                using: sendConsumer
+            )
             showIndicator()
         }
 
         func stop() {
-            let wasCapturing = isCapturing
             disconnectTask?.cancel()
             disconnectTask = nil
             if let eventTap {
@@ -266,10 +282,10 @@
             globeKey.reset()
             sendKeyboard?(.zero)
             sendMouse?(.zero)
-            if wasCapturing, configuredHID?.isConnected == true {
-                tapEject()
-                softwareKeyboardShownByUs = true
-            }
+            performSoftwareKeyboardActions(
+                softwareKeyboardState.captureStopped(),
+                using: sendConsumer ?? configuredHID?.sendConsumer
+            )
             clearHandlers()
             hideIndicator()
             isCapturing = false
@@ -293,8 +309,60 @@
             onRelease = nil
         }
 
-        private func tapEject() {
-            guard let sendConsumer else { return }
+        private func performSoftwareKeyboardActions(
+            _ actions: [SoftwareKeyboardStateMachine.Action],
+            using sendConsumer: ((ConsumerReport) -> Void)?
+        ) {
+            for action in actions {
+                switch action {
+                case .scheduleRestore:
+                    if let sendConsumer {
+                        scheduleSoftwareKeyboardRestore(using: sendConsumer)
+                    }
+                case .cancelRestore:
+                    softwareKeyboardRestoreTask?.cancel()
+                    softwareKeyboardRestoreTask = nil
+                case .scheduleConnectionReset:
+                    scheduleSoftwareKeyboardConnectionReset()
+                case .cancelConnectionReset:
+                    softwareKeyboardConnectionResetTask?.cancel()
+                    softwareKeyboardConnectionResetTask = nil
+                case .toggleKeyboard:
+                    if let sendConsumer {
+                        tapEject(using: sendConsumer)
+                    }
+                }
+            }
+        }
+
+        private func scheduleSoftwareKeyboardRestore(using sendConsumer: @escaping (ConsumerReport) -> Void) {
+            guard softwareKeyboardRestoreTask == nil else { return }
+            softwareKeyboardRestoreTask = Task { [weak self] in
+                guard let self else { return }
+                try? await Task.sleep(nanoseconds: softwareKeyboardRestoreDelayNanoseconds)
+                guard !Task.isCancelled else { return }
+                softwareKeyboardRestoreTask = nil
+                performSoftwareKeyboardActions(
+                    softwareKeyboardState.restoreDelayExpired(),
+                    using: sendConsumer
+                )
+            }
+        }
+
+        private func scheduleSoftwareKeyboardConnectionReset() {
+            guard softwareKeyboardConnectionResetTask == nil else { return }
+            softwareKeyboardConnectionResetTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                guard !Task.isCancelled, let self else { return }
+                softwareKeyboardConnectionResetTask = nil
+                performSoftwareKeyboardActions(
+                    softwareKeyboardState.connectionResetDelayExpired(),
+                    using: nil
+                )
+            }
+        }
+
+        private func tapEject(using sendConsumer: @escaping (ConsumerReport) -> Void) {
             sendConsumer(ConsumerReport(key: .eject))
             // A physical Eject key is not an instantaneous down/up pair. The
             // short hold also guarantees two separate BLE connection events.
@@ -534,6 +602,85 @@
             case .otherMouseUp: (.middle, false)
             default: nil
             }
+        }
+    }
+
+    /// Pure transition model for iPhone's onscreen keyboard. Keeping timing and
+    /// HID side effects outside this type makes every connection/capture race
+    /// deterministic and independently testable.
+    struct SoftwareKeyboardStateMachine {
+        enum Action: Equatable {
+            case scheduleRestore
+            case cancelRestore
+            case scheduleConnectionReset
+            case cancelConnectionReset
+            case toggleKeyboard
+        }
+
+        private(set) var isConnected = false
+        private(set) var isCapturing = false
+        private(set) var isSoftwareKeyboardShown = false
+
+        mutating func connectionChanged(_ connected: Bool) -> [Action] {
+            guard connected != isConnected else { return [] }
+            isConnected = connected
+
+            if connected {
+                var actions: [Action] = [.cancelConnectionReset]
+                if !isCapturing, !isSoftwareKeyboardShown {
+                    actions.append(.scheduleRestore)
+                }
+                return actions
+            }
+
+            return [.cancelRestore, .scheduleConnectionReset]
+        }
+
+        mutating func restoreDelayExpired() -> [Action] {
+            guard isConnected, !isCapturing, !isSoftwareKeyboardShown else { return [] }
+            isSoftwareKeyboardShown = true
+            return [.toggleKeyboard]
+        }
+
+        mutating func connectionResetDelayExpired() -> [Action] {
+            guard !isConnected else { return [] }
+            isSoftwareKeyboardShown = false
+            return []
+        }
+
+        mutating func captureStarted() -> [Action] {
+            guard !isCapturing else { return [] }
+            isCapturing = true
+            var actions: [Action] = [.cancelRestore]
+            if isSoftwareKeyboardShown {
+                isSoftwareKeyboardShown = false
+                actions.append(.toggleKeyboard)
+            }
+            return actions
+        }
+
+        mutating func captureStopped() -> [Action] {
+            guard isCapturing else { return [] }
+            isCapturing = false
+            guard isConnected else { return [] }
+            isSoftwareKeyboardShown = true
+            return [.toggleKeyboard]
+        }
+    }
+
+    @MainActor
+    enum DirectInputConnectionAlert {
+        static let inlineMessage = "MacPhoneInput 尚未与 iPhone 建立外接键盘连接。"
+
+        static func present() {
+            NSApp.activate(ignoringOtherApps: true)
+
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = "iPhone 未连接"
+            alert.informativeText = "MacPhoneInput 尚未与 iPhone 建立外接键盘连接。请先确认 Mac 和 iPhone 的蓝牙均已开启；如果没有自动重连，请前往 iPhone 的“设置 → 辅助功能 → 触控 → 辅助触控 → 设备 → 蓝牙设备”，点按 MacPhoneInput。"
+            alert.addButton(withTitle: "知道了")
+            alert.runModal()
         }
     }
 

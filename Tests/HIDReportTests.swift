@@ -4,6 +4,90 @@ import XCTest
 @testable import MacPhoneInput
 
 final class HIDReportTests: XCTestCase {
+    @MainActor
+    func testIdleConnectionRestoresSoftwareKeyboardOnlyOnce() async {
+        var consumerReports: [ConsumerReport] = []
+        let controller = DirectInputController(
+            softwareKeyboardRestoreDelayNanoseconds: 0,
+            connectionHelpPresenter: {}
+        )
+        let connectedHID = HIDInput(
+            sendMouse: { _ in },
+            sendKeyboard: { _ in },
+            sendConsumer: { consumerReports.append($0) },
+            updateBattery: { _ in },
+            isActive: true,
+            isConnected: true,
+            activeError: nil,
+            batteryLevel: 100
+        )
+
+        controller.configure(connectedHID)
+        await Task.yield()
+        await Task.yield()
+        controller.configure(connectedHID)
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertEqual(consumerReports, [ConsumerReport(key: .eject), .zero])
+        XCTAssertTrue(controller.isDeviceConnected)
+        XCTAssertFalse(controller.isCapturing)
+    }
+
+    @MainActor
+    func testPendingIdleRestoreIsCancelledWhenConnectionDrops() async {
+        var consumerReports: [ConsumerReport] = []
+        let controller = DirectInputController(
+            softwareKeyboardRestoreDelayNanoseconds: 100_000_000,
+            connectionHelpPresenter: {}
+        )
+        let connectedHID = HIDInput(
+            sendMouse: { _ in },
+            sendKeyboard: { _ in },
+            sendConsumer: { consumerReports.append($0) },
+            updateBattery: { _ in },
+            isActive: true,
+            isConnected: true,
+            activeError: nil,
+            batteryLevel: 100
+        )
+
+        controller.configure(connectedHID)
+        controller.configure(.unavailable)
+        try? await Task.sleep(nanoseconds: 150_000_000)
+
+        XCTAssertTrue(consumerReports.isEmpty)
+        XCTAssertFalse(controller.isDeviceConnected)
+    }
+
+    @MainActor
+    func testDisconnectedToggleShowsConnectionHelp() {
+        var presentationCount = 0
+        let controller = DirectInputController {
+            presentationCount += 1
+        }
+
+        controller.toggle()
+
+        XCTAssertEqual(presentationCount, 1)
+        XCTAssertEqual(controller.lastError, DirectInputConnectionAlert.inlineMessage)
+        XCTAssertFalse(controller.isCapturing)
+
+        let connectedHID = HIDInput(
+            sendMouse: { _ in },
+            sendKeyboard: { _ in },
+            sendConsumer: { _ in },
+            updateBattery: { _ in },
+            isActive: true,
+            isConnected: true,
+            activeError: nil,
+            batteryLevel: 100
+        )
+        controller.configure(connectedHID)
+
+        XCTAssertNil(controller.lastError)
+        XCTAssertTrue(controller.isDeviceConnected)
+    }
+
     func testMouseReportEncodingPreservesSignedDeltas() {
         let report = MouseReport(buttons: [.left, .right], dX: -127, dY: 126, wheel: -1)
         XCTAssertEqual(Array(report.data), [0b0000_0011, 0x81, 0x7E, 0xFF])
@@ -249,5 +333,142 @@ final class HIDReportTests: XCTestCase {
 
     private func mask(_ mask: CGEventMask, containsRawValue rawValue: UInt) -> Bool {
         mask & (CGEventMask(1) << CGEventMask(rawValue)) != 0
+    }
+}
+
+final class SoftwareKeyboardStateMachineTests: XCTestCase {
+    func testInitialConnectionSchedulesRestoreOnlyOnce() {
+        var state = SoftwareKeyboardStateMachine()
+
+        XCTAssertEqual(
+            state.connectionChanged(true),
+            [.cancelConnectionReset, .scheduleRestore]
+        )
+        XCTAssertTrue(state.connectionChanged(true).isEmpty)
+        XCTAssertTrue(state.isConnected)
+        XCTAssertFalse(state.isCapturing)
+        XCTAssertFalse(state.isSoftwareKeyboardShown)
+    }
+
+    func testRestoreTimerShowsKeyboardOnlyOnce() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+
+        XCTAssertEqual(state.restoreDelayExpired(), [.toggleKeyboard])
+        XCTAssertTrue(state.restoreDelayExpired().isEmpty)
+        XCTAssertTrue(state.isSoftwareKeyboardShown)
+    }
+
+    func testDisconnectBeforeInitialRestoreCancelsAndReconnectReschedules() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+
+        XCTAssertEqual(
+            state.connectionChanged(false),
+            [.cancelRestore, .scheduleConnectionReset]
+        )
+        XCTAssertTrue(state.restoreDelayExpired().isEmpty)
+        XCTAssertEqual(
+            state.connectionChanged(true),
+            [.cancelConnectionReset, .scheduleRestore]
+        )
+        XCTAssertEqual(state.restoreDelayExpired(), [.toggleKeyboard])
+    }
+
+    func testBriefReconnectDoesNotToggleAlreadyVisibleKeyboard() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+        _ = state.restoreDelayExpired()
+
+        XCTAssertEqual(
+            state.connectionChanged(false),
+            [.cancelRestore, .scheduleConnectionReset]
+        )
+        XCTAssertEqual(state.connectionChanged(true), [.cancelConnectionReset])
+        XCTAssertTrue(state.restoreDelayExpired().isEmpty)
+        XCTAssertTrue(state.isSoftwareKeyboardShown)
+    }
+
+    func testSustainedDisconnectForgetsVisibilityAndReconnectRestores() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+        _ = state.restoreDelayExpired()
+        _ = state.connectionChanged(false)
+
+        XCTAssertTrue(state.connectionResetDelayExpired().isEmpty)
+        XCTAssertFalse(state.isSoftwareKeyboardShown)
+        XCTAssertEqual(
+            state.connectionChanged(true),
+            [.cancelConnectionReset, .scheduleRestore]
+        )
+        XCTAssertEqual(state.restoreDelayExpired(), [.toggleKeyboard])
+        XCTAssertTrue(state.isSoftwareKeyboardShown)
+    }
+
+    func testCaptureBeforeRestoreCancelsPendingRestore() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+
+        XCTAssertEqual(state.captureStarted(), [.cancelRestore])
+        XCTAssertTrue(state.restoreDelayExpired().isEmpty)
+        XCTAssertTrue(state.isCapturing)
+        XCTAssertFalse(state.isSoftwareKeyboardShown)
+        XCTAssertEqual(state.captureStopped(), [.toggleKeyboard])
+        XCTAssertTrue(state.isSoftwareKeyboardShown)
+    }
+
+    func testCaptureHidesVisibleKeyboardAndStopRestoresIt() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+        _ = state.restoreDelayExpired()
+
+        XCTAssertEqual(state.captureStarted(), [.cancelRestore, .toggleKeyboard])
+        XCTAssertTrue(state.isCapturing)
+        XCTAssertFalse(state.isSoftwareKeyboardShown)
+        XCTAssertEqual(state.captureStopped(), [.toggleKeyboard])
+        XCTAssertFalse(state.isCapturing)
+        XCTAssertTrue(state.isSoftwareKeyboardShown)
+    }
+
+    func testDisconnectDuringCaptureDoesNotToggleWhenCaptureStops() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+        _ = state.restoreDelayExpired()
+        _ = state.captureStarted()
+
+        XCTAssertEqual(
+            state.connectionChanged(false),
+            [.cancelRestore, .scheduleConnectionReset]
+        )
+        _ = state.connectionResetDelayExpired()
+        XCTAssertTrue(state.captureStopped().isEmpty)
+        XCTAssertFalse(state.isSoftwareKeyboardShown)
+        XCTAssertEqual(
+            state.connectionChanged(true),
+            [.cancelConnectionReset, .scheduleRestore]
+        )
+    }
+
+    func testReconnectWhileCapturingNeverSchedulesRestore() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+        _ = state.restoreDelayExpired()
+        _ = state.captureStarted()
+        _ = state.connectionChanged(false)
+
+        XCTAssertEqual(state.connectionChanged(true), [.cancelConnectionReset])
+        XCTAssertTrue(state.restoreDelayExpired().isEmpty)
+        XCTAssertTrue(state.isCapturing)
+        XCTAssertFalse(state.isSoftwareKeyboardShown)
+    }
+
+    func testDuplicateCaptureEventsAreIdempotent() {
+        var state = SoftwareKeyboardStateMachine()
+        _ = state.connectionChanged(true)
+
+        XCTAssertEqual(state.captureStarted(), [.cancelRestore])
+        XCTAssertTrue(state.captureStarted().isEmpty)
+        XCTAssertEqual(state.captureStopped(), [.toggleKeyboard])
+        XCTAssertTrue(state.captureStopped().isEmpty)
     }
 }

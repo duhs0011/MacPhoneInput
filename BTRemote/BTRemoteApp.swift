@@ -38,8 +38,10 @@ struct BTRemoteApp: App {
         } label: {
             if directInput.isCapturing {
                 Label("iPhone", systemImage: "iphone.radiowaves.left.and.right")
-            } else {
+            } else if directInput.isDeviceConnected {
                 Image(systemName: "keyboard")
+            } else {
+                Image(systemName: "keyboard.badge.ellipsis")
             }
         }
         .menuBarExtraStyle(.menu)
